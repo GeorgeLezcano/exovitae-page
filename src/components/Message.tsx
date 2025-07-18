@@ -14,8 +14,8 @@ export function Message() {
     >
       <h1>Under Construction, come back soon!</h1>
       <img
-        src="/exovitae_logo.png"
-        alt="Placeholder"
+        src={`${import.meta.env.BASE_URL}exovitae_logo.png`}
+        alt="Logo"
         width={600}
         height={600}
         style={{ objectFit: 'cover', borderRadius: '8px' }}
