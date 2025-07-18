@@ -7,7 +7,7 @@
     npm install
     ```
 
-- Run page.
+- Run page locally.
     ```sh
-    npm run dev
+    npm run preview
     ```
