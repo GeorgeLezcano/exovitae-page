@@ -1,9 +1,55 @@
-body {
-  background: radial-gradient(circle at center, #0a0a14 0%, #02020a 85%);
-  background-attachment: fixed;
-  background-size: cover;
-  margin: 0;
-  padding: 0;
-  color: #a8d9ff;
+
+.main-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
   font-family: sans-serif;
+  color: #a8d9ff;
+  background: radial-gradient(circle at center, #0a0a14 0%, #02020a 85%);
+}
+
+.side-bar {
+  width: 20%;
+  min-width: 200px;
+
+  background-color: #0f172a;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: flex;          
+  flex-direction: column;  
+  align-items: center;    
+}
+
+.info-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  flex: 0 0 40%;
+  background-color: #111827;
+  background-image: url('/Header_Background.png'); 
+  background-size: cover;     
+  background-position: center; 
+  background-repeat: no-repeat;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.details-view {
+  flex: 1;
+  background-color: #1f2937;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: flex;          
+  flex-direction: column;  
+  align-items: center;   
 }
