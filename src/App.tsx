@@ -1,9 +1,11 @@
-import { Message } from "./components/Message";
+import { Home } from "./pages/Home";
 
 function App() {
   return (
     <>
-      <Message />
+    {/* Pages will be added here for navigation*/}
+    {/* Default home for now*/}
+      <Home />
     </>
   );
 }

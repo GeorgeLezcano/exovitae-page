@@ -1,9 +1,0 @@
-body {
-    background: radial-gradient(circle at center, #0a0a14 0%, #02020a 85%);
-    background-attachment: fixed;
-    background-size: cover;
-    margin: 0;
-    padding: 0;
-    color: #A8D9FF; 
-    font-family: sans-serif;
-}

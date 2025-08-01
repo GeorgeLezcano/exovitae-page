@@ -1,5 +1,9 @@
-export function Message() {
+
+import '../../styles/main-layout.css'
+
+export function MainLayout() {
   return (
+    
     <div
       style={{
         display: 'flex',
