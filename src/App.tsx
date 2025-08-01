@@ -1,11 +1,15 @@
-import { Message } from "./components/Message";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Home } from "./pages/Home";
+import { PageRoutes } from "./constants/PageRoutes";
 
-function App() {
+import "./styles/index.css";
+
+export default function App() {
   return (
-    <>
-      <Message />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path={PageRoutes.Homepage} element={<Home />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
