@@ -1,9 +1,9 @@
 type LogoProps = {
-  size?: number;
+  size?: string;
   className?: string;
 };
 
-export function Logo({ size = 100, className = "" }: LogoProps) {
+export function Logo({ size = "100%", className = "" }: LogoProps) {
   return (
     <img
       src="exovitae_logo.png"

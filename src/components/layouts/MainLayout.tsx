@@ -1,10 +1,20 @@
+
+import { sideBarItemList } from "../../constants/SideBarItemList";
 import "../../styles/main-layout.css";
 import { Header } from "../elements/Header";
 import { InfoView } from "../elements/InfoView";
 import { Logo } from "../elements/Logo";
 import { SideBar } from "../elements/SideBar";
+import { SideBarItem } from "../elements/SideBarItem";
+import { useNavigate } from "react-router-dom";
 
 export function MainLayout() {
+  const navigate = useNavigate();
+
+  const handleSideButtonOnClick = (linkTo: string) => {
+    navigate(linkTo);
+  };
+
   return (
     <div className="main-layout">
       <SideBar className="side-bar">
@@ -15,13 +25,20 @@ export function MainLayout() {
             justifyContent: "center",
           }}
         >
-          <Logo size={150} />
+          <Logo size={"100%"} />
         </div>
 
-        {/* TODO: Side bar content */}
-        <h2>Temp Item 1</h2>
-        <h2>Temp Item 2</h2>
-        <h2>Temp item 3</h2>
+        {sideBarItemList.map((item) => (
+          <SideBarItem
+            key={item.name}
+            name={item.name}
+            onClick={() => {
+              handleSideButtonOnClick(item.linkTo);
+            }}
+            disabled={item.disabled}
+            tooltip={item.tooltip}
+          />
+        ))}
       </SideBar>
 
       <div className="info-panel">
