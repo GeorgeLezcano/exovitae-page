@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { sideBarItemList } from "../../constants/SideBarItemList";
 import "../../styles/main-layout.css";
 import { Header } from "../elements/Header";
@@ -6,13 +7,13 @@ import { InfoView } from "../elements/InfoView";
 import { Logo } from "../elements/Logo";
 import { SideBar } from "../elements/SideBar";
 import { SideBarItem } from "../elements/SideBarItem";
-import { useNavigate } from "react-router-dom";
+import { SideButtonRoutes } from "../../constants/SideButtonRoutes";
 
 export function MainLayout() {
-  const navigate = useNavigate();
+
+  const [selectedSection, setSelectedSection] = useState(SideButtonRoutes.GameOverview)
 
   const handleSideButtonOnClick = (linkTo: string) => {
-    navigate(linkTo);
   };
 
   return (
@@ -30,6 +31,7 @@ export function MainLayout() {
 
         {sideBarItemList.map((item) => (
           <SideBarItem
+            className={`sideBarItemButton`}
             key={item.name}
             name={item.name}
             onClick={() => {
