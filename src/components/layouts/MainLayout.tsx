@@ -15,30 +15,32 @@ import FeedBackSection from "../sections/FeedBackSection";
 import AboutSection from "../sections/AboutSection";
 
 export function MainLayout() {
-  const [selectedSection, setSelectedSection] = useState<string>(SideButtonRoutes.GameOverview);
+  const [selectedSection, setSelectedSection] = useState<string>(
+    SideButtonRoutes.GameOverview
+  );
 
   const handleSideButtonOnClick = (linkTo: string) => {
     setSelectedSection(linkTo);
   };
 
   const renderSection = () => {
-  switch (selectedSection) {
-    case SideButtonRoutes.GameOverview:
-      return <GameOverviewSection/>
-    case SideButtonRoutes.Features:
-      return <FeaturesSection/>
-    case SideButtonRoutes.Media:
-      return <MediaSection/>
-    case SideButtonRoutes.FAQ:
-      return <FAQSection/>
-    case SideButtonRoutes.Feedback:
-      return <FeedBackSection/>
-    case SideButtonRoutes.About:
-      return <AboutSection/>
-    default:
-      return <h1>Not Found</h1>;
-  }
-};
+    switch (selectedSection) {
+      case SideButtonRoutes.GameOverview:
+        return <GameOverviewSection />;
+      case SideButtonRoutes.Features:
+        return <FeaturesSection />;
+      case SideButtonRoutes.Media:
+        return <MediaSection />;
+      case SideButtonRoutes.FAQ:
+        return <FAQSection />;
+      case SideButtonRoutes.Feedback:
+        return <FeedBackSection />;
+      case SideButtonRoutes.About:
+        return <AboutSection />;
+      default:
+        return <h1>Not Found</h1>;
+    }
+  };
 
   return (
     <div className="main-layout">
@@ -68,13 +70,9 @@ export function MainLayout() {
       </SideBar>
 
       <div className="info-panel">
-        <Header className="header">
-          {/* TODO Add header content */}
-        </Header>
+        <Header height="40vh"></Header>
 
-        <InfoView className="details-view">
-          {renderSection()}
-        </InfoView>
+        <InfoView className="details-view">{renderSection()}</InfoView>
       </div>
     </div>
   );
