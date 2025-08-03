@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { sideBarItemList } from "../../constants/SideBarItemList";
 import "../../styles/main-layout.css";
@@ -10,11 +9,30 @@ import { SideBarItem } from "../elements/SideBarItem";
 import { SideButtonRoutes } from "../../constants/SideButtonRoutes";
 
 export function MainLayout() {
-
-  const [selectedSection, setSelectedSection] = useState(SideButtonRoutes.GameOverview)
+  const [selectedSection, setSelectedSection] = useState<string>(SideButtonRoutes.GameOverview);
 
   const handleSideButtonOnClick = (linkTo: string) => {
+    setSelectedSection(linkTo);
   };
+
+  const renderSection = () => {
+  switch (selectedSection) {
+    case SideButtonRoutes.GameOverview:
+      return <h1>Game Overview</h1>;
+    case SideButtonRoutes.Features:
+      return <h1>Features</h1>;
+    case SideButtonRoutes.Media:
+      return <h1>Media</h1>;
+    case SideButtonRoutes.FAQ:
+      return <h1>FAQ</h1>;
+    case SideButtonRoutes.Feedback:
+      return <h1>FeedBack</h1>;
+    case SideButtonRoutes.About:
+      return <h1>About</h1>;
+    default:
+      return <h1>Not Found</h1>;
+  }
+};
 
   return (
     <div className="main-layout">
@@ -45,13 +63,11 @@ export function MainLayout() {
 
       <div className="info-panel">
         <Header className="header">
-          {/* TODO: Header content*/}
-          <h1>Header Section</h1>
+          {/* TODO Add header content */}
         </Header>
 
         <InfoView className="details-view">
-          {/* TODO: Tab content */}
-          <h1>Details Section</h1>
+          {renderSection()}
         </InfoView>
       </div>
     </div>
