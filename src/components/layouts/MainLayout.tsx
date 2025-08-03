@@ -7,6 +7,12 @@ import { Logo } from "../elements/Logo";
 import { SideBar } from "../elements/SideBar";
 import { SideBarItem } from "../elements/SideBarItem";
 import { SideButtonRoutes } from "../../constants/SideButtonRoutes";
+import GameOverviewSection from "../sections/GameOverviewSection";
+import FeaturesSection from "../sections/FeaturesSection";
+import MediaSection from "../sections/MediaSection";
+import FAQSection from "../sections/FAQSection";
+import FeedBackSection from "../sections/FeedBackSection";
+import AboutSection from "../sections/AboutSection";
 
 export function MainLayout() {
   const [selectedSection, setSelectedSection] = useState<string>(SideButtonRoutes.GameOverview);
@@ -18,17 +24,17 @@ export function MainLayout() {
   const renderSection = () => {
   switch (selectedSection) {
     case SideButtonRoutes.GameOverview:
-      return <h1>Game Overview</h1>;
+      return <GameOverviewSection/>
     case SideButtonRoutes.Features:
-      return <h1>Features</h1>;
+      return <FeaturesSection/>
     case SideButtonRoutes.Media:
-      return <h1>Media</h1>;
+      return <MediaSection/>
     case SideButtonRoutes.FAQ:
-      return <h1>FAQ</h1>;
+      return <FAQSection/>
     case SideButtonRoutes.Feedback:
-      return <h1>FeedBack</h1>;
+      return <FeedBackSection/>
     case SideButtonRoutes.About:
-      return <h1>About</h1>;
+      return <AboutSection/>
     default:
       return <h1>Not Found</h1>;
   }
