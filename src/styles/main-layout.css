@@ -1,4 +1,3 @@
-
 .main-layout {
   display: flex;
   height: 100vh;
@@ -11,14 +10,13 @@
 .side-bar {
   width: 20%;
   min-width: 200px;
-
-  background-color: #0f172a;
+  background-color: #050511;
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
-  display: flex;          
-  flex-direction: column;  
-  align-items: center;    
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .info-panel {
@@ -29,12 +27,26 @@
 }
 
 .header {
-  flex: 0 0 40%;
+  flex: 0 0 30%;
   background-color: #111827;
-  background-image: url('/Header_Background.png'); 
-  background-size: cover;     
-  background-position: center; 
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ffffff;
+  font-size: x-large;
+  font-family: monospace;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.details-view {
+  flex: 1;
+  background-color: #050511;
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
@@ -43,30 +55,20 @@
   align-items: center;
 }
 
-.details-view {
-  flex: 1;
-  background-color: #1f2937;
-  padding: 1rem;
-  box-sizing: border-box;
-  overflow-y: auto;
-  display: flex;          
-  flex-direction: column;  
-  align-items: center;   
-}
-
 .sideBarItemButton {
-  background-color: #1f2937;   
-  color: white;
-  border: none;
+  background-color: rgba(33, 150, 243, 0.1);  
+  color: #a8cfff;                             
+  border: 1px solid #2196f3;                  
   padding: 0.75rem 1rem;
   width: 100%;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
-  border-radius: 0.375rem;    
+  border-radius: 0.375rem;
+  font-size: larger;
 }
 
 .sideBarItemButton:hover {
-  background-color: #374151;  
+  background-color: rgba(33, 150, 243, 0.3); 
 }
 
 .sideBarItemButton:disabled {
@@ -75,7 +77,71 @@
 }
 
 .sideBarItemButton.selected {
-  background-color: #2563eb;
+  background-color: #2563eb; 
   font-weight: 600;
   color: white;
+}
+
+.detailsButton {
+  background-color: rgba(33, 150, 243, 0.1); 
+  color: #a8cfff;                            
+  border: 1px solid #2196f3;                 
+  padding: 0.75rem 1.25rem;
+  width: fit-content;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+}
+
+.detailsButton:hover {
+  background-color: rgba(33, 150, 243, 0.3);
+}
+
+.detailsButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.detailsButton.selected {
+  background-color: #3b82f6;
+  font-weight: 600;
+  color: white;
+}
+
+.inputField {
+  padding: 0.75rem 1rem;
+  width: 100%;
+  max-width: 400px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  background-color: #11121a;
+  color: #f1f1f1;
+  outline: none;
+}
+
+.inputFieldLarge {
+  padding: 1rem 1.25rem;
+  width: 100%;
+  max-width: 600px;
+  font-size: 1rem;
+  min-height: 150px;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  background-color: #11121a;
+  color: #f1f1f1;
+  outline: none;
+  resize: vertical;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 4rem;
+  padding-inline: 2rem;
+  gap: 1rem;
+  min-height: 100vh;
 }

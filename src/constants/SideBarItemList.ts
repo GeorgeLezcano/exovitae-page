@@ -1,4 +1,5 @@
-import { PageRoutes } from "./PageRoutes";
+import { SideButtonRoutes } from "./SideButtonRoutes";
+
 
 export type SideBarItemList = {
   name: string;
@@ -8,6 +9,10 @@ export type SideBarItemList = {
 };
 
 export const sideBarItemList: SideBarItemList[] = [
-  { name: "Home", linkTo: PageRoutes.Homepage, tooltip: "Home Page"},
-  { name: "FAQ", linkTo: "", tooltip: "Frequently Asked Questions"},
+  {name: "Game Overview", linkTo: SideButtonRoutes.GameOverview},
+  {name: "Features", linkTo: SideButtonRoutes.Features},
+  {name: "Media", linkTo: SideButtonRoutes.Media},
+  {name: "FAQ", linkTo: SideButtonRoutes.FAQ, tooltip: "Frequently Asked Questions"},
+  {name: "Feedback", linkTo: SideButtonRoutes.Feedback},
+  {name: "About", linkTo: SideButtonRoutes.About}
 ];

@@ -11,12 +11,12 @@ export function SideBarItem({
   onClick,
   disabled = false,
   tooltip,
-  className = "",
+  className,
 }: SideBarItemProps) {
   return (
     <div style={{paddingBottom: 30, width: "100%"}}>
       <button
-        className={`sideBarItemButton ${className}`}
+        className={className}
         onClick={onClick}
         disabled={disabled}
         title={tooltip}

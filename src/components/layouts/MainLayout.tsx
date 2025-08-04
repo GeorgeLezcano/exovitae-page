@@ -1,18 +1,45 @@
-
+import { useState } from "react";
 import { sideBarItemList } from "../../constants/SideBarItemList";
 import "../../styles/main-layout.css";
-import { Header } from "../elements/Header";
 import { InfoView } from "../elements/InfoView";
 import { Logo } from "../elements/Logo";
 import { SideBar } from "../elements/SideBar";
 import { SideBarItem } from "../elements/SideBarItem";
-import { useNavigate } from "react-router-dom";
+import { SideButtonRoutes } from "../../constants/SideButtonRoutes";
+import GameOverviewSection from "../sections/GameOverviewSection";
+import FeaturesSection from "../sections/FeaturesSection";
+import MediaSection from "../sections/MediaSection";
+import FAQSection from "../sections/FAQSection";
+import FeedBackSection from "../sections/FeedBackSection";
+import AboutSection from "../sections/AboutSection";
+import { AnimatedHeader } from "../elements/AnimatedHeader";
 
 export function MainLayout() {
-  const navigate = useNavigate();
+  const [selectedSection, setSelectedSection] = useState<string>(
+    SideButtonRoutes.GameOverview
+  );
 
   const handleSideButtonOnClick = (linkTo: string) => {
-    navigate(linkTo);
+    setSelectedSection(linkTo);
+  };
+
+  const renderSection = () => {
+    switch (selectedSection) {
+      case SideButtonRoutes.GameOverview:
+        return <GameOverviewSection />;
+      case SideButtonRoutes.Features:
+        return <FeaturesSection />;
+      case SideButtonRoutes.Media:
+        return <MediaSection />;
+      case SideButtonRoutes.FAQ:
+        return <FAQSection />;
+      case SideButtonRoutes.Feedback:
+        return <FeedBackSection />;
+      case SideButtonRoutes.About:
+        return <AboutSection />;
+      default:
+        return <h1>Not Found</h1>;
+    }
   };
 
   return (
@@ -30,6 +57,7 @@ export function MainLayout() {
 
         {sideBarItemList.map((item) => (
           <SideBarItem
+            className={`sideBarItemButton`}
             key={item.name}
             name={item.name}
             onClick={() => {
@@ -42,15 +70,8 @@ export function MainLayout() {
       </SideBar>
 
       <div className="info-panel">
-        <Header className="header">
-          {/* TODO: Header content*/}
-          <h1>Header Section</h1>
-        </Header>
-
-        <InfoView className="details-view">
-          {/* TODO: Tab content */}
-          <h1>Details Section</h1>
-        </InfoView>
+        <AnimatedHeader height="40vh"></AnimatedHeader>
+        <InfoView className="details-view">{renderSection()}</InfoView>
       </div>
     </div>
   );
