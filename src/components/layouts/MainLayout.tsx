@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { sideBarItemList } from "../../constants/SideBarItemList";
 import "../../styles/main-layout.css";
-import { Header } from "../elements/Header";
 import { InfoView } from "../elements/InfoView";
 import { Logo } from "../elements/Logo";
 import { SideBar } from "../elements/SideBar";
@@ -13,6 +12,7 @@ import MediaSection from "../sections/MediaSection";
 import FAQSection from "../sections/FAQSection";
 import FeedBackSection from "../sections/FeedBackSection";
 import AboutSection from "../sections/AboutSection";
+import { AnimatedHeader } from "../elements/AnimatedHeader";
 
 export function MainLayout() {
   const [selectedSection, setSelectedSection] = useState<string>(
@@ -70,8 +70,7 @@ export function MainLayout() {
       </SideBar>
 
       <div className="info-panel">
-        <Header height="40vh"></Header>
-
+        <AnimatedHeader height="40vh"></AnimatedHeader>
         <InfoView className="details-view">{renderSection()}</InfoView>
       </div>
     </div>

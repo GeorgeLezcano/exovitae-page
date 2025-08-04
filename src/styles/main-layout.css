@@ -56,9 +56,9 @@
 }
 
 .sideBarItemButton {
-  background-color: #1f2937;
-  color: white;
-  border: none;
+  background-color: rgba(33, 150, 243, 0.1);  
+  color: #a8cfff;                             
+  border: 1px solid #2196f3;                  
   padding: 0.75rem 1rem;
   width: 100%;
   cursor: pointer;
@@ -68,7 +68,7 @@
 }
 
 .sideBarItemButton:hover {
-  background-color: #374151;
+  background-color: rgba(33, 150, 243, 0.3); 
 }
 
 .sideBarItemButton:disabled {
@@ -77,15 +77,15 @@
 }
 
 .sideBarItemButton.selected {
-  background-color: #2563eb;
+  background-color: #2563eb; 
   font-weight: 600;
   color: white;
 }
 
 .detailsButton {
-  background-color: #1e2233;
-  color: #f1f1f1;
-  border: none;
+  background-color: rgba(33, 150, 243, 0.1); 
+  color: #a8cfff;                            
+  border: 1px solid #2196f3;                 
   padding: 0.75rem 1.25rem;
   width: fit-content;
   cursor: pointer;
@@ -95,7 +95,7 @@
 }
 
 .detailsButton:hover {
-  background-color: #2c324a;
+  background-color: rgba(33, 150, 243, 0.3);
 }
 
 .detailsButton:disabled {
