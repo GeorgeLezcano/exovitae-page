@@ -1,27 +1,43 @@
-# Dev setup steps
+# 🚀 Development Workflow – React + Vite
 
-- Install dependencies
-    ```sh
-    npm install
-    ```
-- Run page locally
-    ```sh
-    npm run preview 
-    ```
-- Build project
-    ```sh
-    npm run build 
-    ```
-- Run in dev mode
-    ```sh
-    npm run dev 
-    ```
+## 1️⃣ Install Dependencies
+Run this once after cloning the repository:
+```sh
+npm install
+```
 
-- Deploy - This will deploy the updated code to gh-pages (Admins)
-    ```sh
-    npm run deploy
-    ```
+## 2️⃣ Run in Development Mode
+Start a local dev server with hot reload:
+```sh
+npm run dev
+```
+Your app will be available at the URL shown in the terminal (usually `http://localhost:5173`).
 
-## Main branch will only be updated via PRs. gh-pages branch (live website) will only be update from main.
+## 3️⃣ Preview Production Build
+Simulate the production build locally:
+```sh
+npm run build
+npm run preview
+```
 
-## Contributors: Create a branch or fork the repository, do the things and create a PR for approval.
+## 4️⃣ Build for Production
+Generate optimized static files in the `dist` folder:
+```sh
+npm run build
+```
+
+## 5️⃣ Deploy (Admins Only)
+Deploy the latest code from **main** to the live site (**gh-pages** branch):
+```sh
+npm run deploy
+```
+
+---
+
+## 📌 Branch & PR Policy
+- **`main` branch**: Updated **only via Pull Requests**.
+- **`gh-pages` branch**: Updated **only from `main`** during deployment.
+- **Contributors**:  
+  1. Create a branch or fork the repo.  
+  2. Make your changes.  
+  3. Open a PR for review and approval.

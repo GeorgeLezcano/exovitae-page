@@ -6,69 +6,211 @@ type AnimatedHeaderProps = {
   height?: number | string;
 };
 
+/** Tunable knobs */
+const CONFIG = {
+  scene: {
+    background: 0x000010,
+  },
+  renderer: {
+    maxPixelRatio: 2,
+    antialias: true,
+  },
+  dna: {
+    /** radians/sec */
+    rotYSpeed: 0.3,
+    /** radians amplitude & Hz-ish speed for subtle tilt */
+    wobbleXAmp: 0.05,
+    wobbleXSpeed: 0.25,
+    /** overall scale (zoom) */
+    scale: 1.8,
+    /** helix shape */
+    turns: 2,
+    pointsPerTurn: 40,
+    stepY: 0.3,
+    radius: 1.5,
+    /** geometry sizes/quality */
+    sphereRadius: 0.4,
+    sphereSegments: 24,
+    rungRadius: 0.05,
+    rungLength: 1.2,
+    rungSegments: 8,
+    /** rung frequency (every Nth point) */
+    rungEvery: 4,
+  },
+  blackHole: {
+    rotYSpeed: 1.2,
+    wobbleXAmp: 0.03,
+    wobbleXSpeed: 0.2,
+    scale: 1.8,
+    core: {
+      radius: 1.2,
+      widthSegments: 48,
+      heightSegments: 48,
+      color: 0x000005,
+      roughness: 0.3,
+      metalness: 1.0,
+      emissive: 0x000022,
+      emissiveIntensity: 0.6,
+    },
+    glow: {
+      radius: 1.7,
+      color: 0x3399ff,
+      opacity: 0.45,
+    },
+    halo: {
+      radius: 2.4,
+      color: 0x112244,
+      opacity: 0.18,
+    },
+  },
+  stars: {
+    far: {
+      count: 2000,
+      spread: 1200,
+      size: 0.6,
+      color: 0x9fbff6,
+      rotYSpeed: 0.01, // rad/sec
+      driftXAmp: 2.0,
+      driftXSpeed: 0.02, // Hz-ish
+      driftYAmp: 1.5,
+      driftYSpeed: 0.015,
+    },
+    near: {
+      count: 1200,
+      spread: 700,
+      size: 1.0,
+      color: 0xdde7ff,
+      rotYSpeed: -0.02,
+      driftXAmp: 3.0,
+      driftXSpeed: 0.03,
+      driftYAmp: 2.0,
+      driftYSpeed: 0.02,
+      phaseOffset: 1.2, // phase shift vs far layer
+    },
+  },
+  camera: {
+    fov: 60,
+    near: 0.1,
+    far: 2000,
+    basePos: { x: 0, y: 1, z: 16 },
+    /** bobbing amplitudes and speeds */
+    bobXAmp: 0.3,
+    bobXSpeed: 0.1,
+    bobYAmp: 0.15,
+    bobYSpeed: 0.07,
+  },
+  lights: {
+    ambient: { color: 0x6699cc, intensity: 0.6 },
+    directional: { color: 0xffffff, intensity: 0.8, position: new THREE.Vector3(5, 10, 7) },
+  },
+} as const;
+
 export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHeaderProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const frameIdRef = useRef<number | null>(null);
+  const resizeRafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
-    const width = mount.clientWidth;
-    const heightPx = typeof height === "number" ? height : mount.clientHeight || 400;
+    const getSize = () => {
+      const w = mount.clientWidth;
+      const h = typeof height === "number" ? height : mount.clientHeight || 400;
+      return { w, h: Number(h) };
+    };
 
-    // === THREE.js Scene Setup ===
+    // Scene & Camera
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000010);
+    scene.background = new THREE.Color(CONFIG.scene.background);
+    sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(60, width / heightPx, 0.1, 1000);
-    camera.position.set(0, 1, 16); // slight Y offset
+    const { w, h } = getSize();
+    const camera = new THREE.PerspectiveCamera(CONFIG.camera.fov, w / h, CONFIG.camera.near, CONFIG.camera.far);
+    camera.position.set(CONFIG.camera.basePos.x, CONFIG.camera.basePos.y, CONFIG.camera.basePos.z);
+    cameraRef.current = camera;
 
+    // Renderer
     let renderer = rendererRef.current;
     if (!renderer) {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer = new THREE.WebGLRenderer({ antialias: CONFIG.renderer.antialias, alpha: true });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
       rendererRef.current = renderer;
       mount.appendChild(renderer.domElement);
     }
-    renderer.setSize(width, heightPx);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, CONFIG.renderer.maxPixelRatio));
+    renderer.setSize(w, h);
 
-    // === Lighting ===
-    const ambientLight = new THREE.AmbientLight(0x6699cc, 0.6);
-    scene.add(ambientLight);
+    // Lights
+    const amb = new THREE.AmbientLight(CONFIG.lights.ambient.color, CONFIG.lights.ambient.intensity);
+    const dir = new THREE.DirectionalLight(CONFIG.lights.directional.color, CONFIG.lights.directional.intensity);
+    dir.position.copy(CONFIG.lights.directional.position);
+    scene.add(amb, dir);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 10, 7);
-    scene.add(directionalLight);
+    // Helpers
+    const disposeObject = (obj: THREE.Object3D) => {
+      obj.traverse((child: any) => {
+        child.geometry?.dispose?.();
+        if (child.material) {
+          if (Array.isArray(child.material)) child.material.forEach((m: any) => m.dispose?.());
+          else child.material.dispose?.();
+        }
+      });
+    };
 
-    // === Starfield Background ===
-    const starsGeometry = new THREE.BufferGeometry();
-    const starVertices = [];
-    for (let i = 0; i < 5000; i++) {
-      starVertices.push(
-        THREE.MathUtils.randFloatSpread(1000),
-        THREE.MathUtils.randFloatSpread(1000),
-        THREE.MathUtils.randFloatSpread(1000)
-      );
-    }
-    starsGeometry.setAttribute("position", new THREE.Float32BufferAttribute(starVertices, 3));
-    const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
-    const starField = new THREE.Points(starsGeometry, starsMaterial);
-    scene.add(starField);
+    // Parallax Starfield
+    const makeStars = (count: number, spread: number, size: number, color: number) => {
+      const geom = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        pos[i * 3 + 0] = THREE.MathUtils.randFloatSpread(spread);
+        pos[i * 3 + 1] = THREE.MathUtils.randFloatSpread(spread);
+        pos[i * 3 + 2] = THREE.MathUtils.randFloatSpread(spread);
+      }
+      geom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({ size, transparent: true, color });
+      return new THREE.Points(geom, mat);
+    };
 
-    // === DNA Helix ===
+    const starsGroup = new THREE.Group();
+    const farStars = makeStars(
+      CONFIG.stars.far.count,
+      CONFIG.stars.far.spread,
+      CONFIG.stars.far.size,
+      CONFIG.stars.far.color
+    );
+    const nearStars = makeStars(
+      CONFIG.stars.near.count,
+      CONFIG.stars.near.spread,
+      CONFIG.stars.near.size,
+      CONFIG.stars.near.color
+    );
+    starsGroup.add(farStars, nearStars);
+    scene.add(starsGroup);
+
+    // DNA (instanced meshes)
     const dnaGroup = new THREE.Group();
+    scene.add(dnaGroup);
 
-    // ⚙️ Adjust DNA size/spacing/turns here:
-    const turns = 2;
-    const pointsPerTurn = 40;
-    const totalPoints = turns * pointsPerTurn;
-    const heightBetweenPoints = 0.3;
-    const radius = 1.5;
+    const {
+      turns,
+      pointsPerTurn,
+      stepY,
+      radius,
+      sphereRadius,
+      sphereSegments,
+      rungRadius,
+      rungLength,
+      rungSegments,
+      rungEvery,
+      scale: dnaScale,
+    } = CONFIG.dna;
 
-    const sphereGeom = new THREE.SphereGeometry(0.4, 32, 32);
-    const cylinderGeom = new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8);
-
+    const sphereGeom = new THREE.SphereGeometry(sphereRadius, sphereSegments, sphereSegments);
+    const rungGeom = new THREE.CylinderGeometry(rungRadius, rungRadius, rungLength, rungSegments);
     const brightBlue = new THREE.MeshStandardMaterial({
       color: 0x00bfff,
       metalness: 0.8,
@@ -77,221 +219,197 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
       emissiveIntensity: 0.4,
     });
 
+    const totalPoints = turns * pointsPerTurn;
+    const spheres = new THREE.InstancedMesh(sphereGeom, brightBlue, totalPoints * 2);
+    const rungs = new THREE.InstancedMesh(rungGeom, brightBlue, Math.floor(totalPoints / rungEvery));
+    spheres.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    rungs.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+    const tmpMat = new THREE.Matrix4();
+    const tmpQuat = new THREE.Quaternion();
+    const tmpPos = new THREE.Vector3();
+    const tmpScale = new THREE.Vector3(1, 1, 1);
+
+    // Place spheres (two helices)
+    let sIdx = 0;
     for (let i = 0; i < totalPoints; i++) {
-      const angle = (i / pointsPerTurn) * 2 * Math.PI;
-      const y = i * heightBetweenPoints - (totalPoints * heightBetweenPoints) / 2;
+      const angle = (i / pointsPerTurn) * Math.PI * 2;
+      const y = i * stepY - (totalPoints * stepY) / 2;
 
       const x1 = Math.cos(angle) * radius;
       const z1 = Math.sin(angle) * radius;
       const x2 = Math.cos(angle + Math.PI) * radius;
       const z2 = Math.sin(angle + Math.PI) * radius;
 
-      const sphere1 = new THREE.Mesh(sphereGeom, brightBlue);
-      sphere1.position.set(x1, y, z1);
-      dnaGroup.add(sphere1);
+      tmpPos.set(x1, y, z1);
+      tmpQuat.identity();
+      tmpMat.compose(tmpPos, tmpQuat, tmpScale);
+      spheres.setMatrixAt(sIdx++, tmpMat);
 
-      const sphere2 = new THREE.Mesh(sphereGeom, brightBlue);
-      sphere2.position.set(x2, y, z2);
-      dnaGroup.add(sphere2);
-
-      // Optional: DNA "rungs"
-      if (i % 4 === 0 && i < totalPoints - 1) {
-        const rung = new THREE.Mesh(cylinderGeom, brightBlue);
-        const midX = (x1 + x2) / 2;
-        const midY = y;
-        const midZ = (z1 + z2) / 2;
-        rung.position.set(midX, midY, midZ);
-
-        const dir = new THREE.Vector3(x2 - x1, 0, z2 - z1).normalize();
-        const axis = new THREE.Vector3(0, 1, 0).normalize();
-        const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, dir);
-        rung.quaternion.copy(quaternion);
-
-        dnaGroup.add(rung);
-      }
+      tmpPos.set(x2, y, z2);
+      tmpQuat.identity();
+      tmpMat.compose(tmpPos, tmpQuat, tmpScale);
+      spheres.setMatrixAt(sIdx++, tmpMat);
     }
+    spheres.instanceMatrix.needsUpdate = true;
+    dnaGroup.add(spheres);
 
-    dnaGroup.position.set(0, 0, 0);
-    dnaGroup.scale.set(1.8, 1.8, 1.8); // 🔍 DNA Zoom/Scale
-    scene.add(dnaGroup);
+    // Place rungs every Nth point
+    let rIdx = 0;
+    for (let i = 0; i < totalPoints; i += rungEvery) {
+      const angle = (i / pointsPerTurn) * Math.PI * 2;
+      const y = i * stepY - (totalPoints * stepY) / 2;
 
-    // === Black Hole + Glow Effects ===
+      const x1 = Math.cos(angle) * radius;
+      const z1 = Math.sin(angle) * radius;
+      const x2 = Math.cos(angle + Math.PI) * radius;
+      const z2 = Math.sin(angle + Math.PI) * radius;
+
+      const midX = (x1 + x2) / 2;
+      const midZ = (z1 + z2) / 2;
+
+      tmpPos.set(midX, y, midZ);
+      const dirVec = new THREE.Vector3(x2 - x1, 0, z2 - z1).normalize();
+      const up = new THREE.Vector3(0, 1, 0);
+      tmpQuat.setFromUnitVectors(up, dirVec);
+      tmpMat.compose(tmpPos, tmpQuat, tmpScale);
+      rungs.setMatrixAt(rIdx++, tmpMat);
+    }
+    rungs.instanceMatrix.needsUpdate = true;
+    dnaGroup.add(rungs);
+    dnaGroup.scale.set(dnaScale, dnaScale, dnaScale);
+
+    // Black hole
+    const bh = CONFIG.blackHole;
     const blackHoleGroup = new THREE.Group();
-
-    // ⚫ Core Black Hole — darker + more emissive
-    const blackHoleGeom = new THREE.SphereGeometry(1.2, 64, 64);
-    const blackHoleMat = new THREE.MeshStandardMaterial({
-      color: 0x000005, // darker than before
-      roughness: 0.3,
-      metalness: 1,
-      emissive: 0x000022,
-      emissiveIntensity: 0.7,
-    });
-    const blackHole = new THREE.Mesh(blackHoleGeom, blackHoleMat);
-    blackHoleGroup.add(blackHole);
-
-    // ✨ Inner Glow
-    const glowGeom = new THREE.SphereGeometry(1.7, 32, 32);
-    const glowMat = new THREE.MeshBasicMaterial({
-      color: 0x3399ff,
-      transparent: true,
-      opacity: 0.5,
-      blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
-    });
-    const glow = new THREE.Mesh(glowGeom, glowMat);
-    blackHoleGroup.add(glow);
-
-    // 🌌 Outer Glow / Cosmic Halo
-    const outerGlowGeom = new THREE.SphereGeometry(2.4, 32, 32);
-    const outerGlowMat = new THREE.MeshBasicMaterial({
-      color: 0x112244,
-      transparent: true,
-      opacity: 0.2,
-      blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
-    });
-    const outerGlow = new THREE.Mesh(outerGlowGeom, outerGlowMat);
-    blackHoleGroup.add(outerGlow);
-
-    // 🌟 Accretion Particles
-    const particleCount = 100;
-    const particleGeometry = new THREE.BufferGeometry();
-    const particlePositions = [];
-    for (let i = 0; i < particleCount; i++) {
-      const radius = THREE.MathUtils.randFloat(1.8, 2.5);
-      const theta = Math.acos(THREE.MathUtils.randFloatSpread(2));
-      const phi = THREE.MathUtils.randFloat(0, 2 * Math.PI);
-      const x = radius * Math.sin(theta) * Math.cos(phi);
-      const y = radius * Math.sin(theta) * Math.sin(phi);
-      const z = radius * Math.cos(theta);
-      particlePositions.push(x, y, z);
-    }
-    particleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(particlePositions, 3));
-    const particleMaterial = new THREE.PointsMaterial({
-      color: 0x66bbff,
-      size: 0.05,
-      transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending,
-    });
-    const particles = new THREE.Points(particleGeometry, particleMaterial);
-    blackHoleGroup.add(particles);
-
-    blackHoleGroup.position.set(0, 0, 0);
-    blackHoleGroup.scale.set(1.8, 1.8, 1.8); // 🔍 Black Hole Zoom/Scale
+    const core = new THREE.Mesh(
+      new THREE.SphereGeometry(bh.core.radius, bh.core.widthSegments, bh.core.heightSegments),
+      new THREE.MeshStandardMaterial({
+        color: bh.core.color,
+        roughness: bh.core.roughness,
+        metalness: bh.core.metalness,
+        emissive: bh.core.emissive,
+        emissiveIntensity: bh.core.emissiveIntensity,
+      })
+    );
+    const glow = new THREE.Mesh(
+      new THREE.SphereGeometry(bh.glow.radius, 32, 32),
+      new THREE.MeshBasicMaterial({
+        color: bh.glow.color,
+        transparent: true,
+        opacity: bh.glow.opacity,
+        blending: THREE.AdditiveBlending,
+        side: THREE.BackSide,
+      })
+    );
+    const halo = new THREE.Mesh(
+      new THREE.SphereGeometry(bh.halo.radius, 32, 32),
+      new THREE.MeshBasicMaterial({
+        color: bh.halo.color,
+        transparent: true,
+        opacity: bh.halo.opacity,
+        blending: THREE.AdditiveBlending,
+        side: THREE.BackSide,
+      })
+    );
+    blackHoleGroup.add(core, glow, halo);
+    blackHoleGroup.scale.set(bh.scale, bh.scale, bh.scale);
     scene.add(blackHoleGroup);
 
-    // === Animation Loop ===
-    let flickerDirection = 1;
-    const animate = () => {
-      dnaGroup.rotation.y += 0.0015;
-      blackHoleGroup.rotation.y -= 0.002;
+    // Animation
+    const clock = new THREE.Clock();
 
-      // Particle opacity flicker
-      if (particleMaterial.opacity >= 1) flickerDirection = -1;
-      else if (particleMaterial.opacity <= 0.5) flickerDirection = 1;
-      particleMaterial.opacity += flickerDirection * 0.005;
+    const animate = () => {
+      const dt = clock.getDelta();
+      const t = clock.elapsedTime;
+
+      // DNA + black hole rotation + subtle wobble
+      dnaGroup.rotation.y += CONFIG.dna.rotYSpeed * dt;
+      dnaGroup.rotation.x = Math.sin(t * CONFIG.dna.wobbleXSpeed) * CONFIG.dna.wobbleXAmp;
+
+      blackHoleGroup.rotation.y -= CONFIG.blackHole.rotYSpeed * dt;
+      blackHoleGroup.rotation.x = Math.cos(t * CONFIG.blackHole.wobbleXSpeed) * CONFIG.blackHole.wobbleXAmp;
+
+      // Parallax stars
+      starsGroup.rotation.y += CONFIG.stars.far.rotYSpeed * dt;
+      farStars.position.x = Math.sin(t * CONFIG.stars.far.driftXSpeed) * CONFIG.stars.far.driftXAmp;
+      farStars.position.y = Math.cos(t * CONFIG.stars.far.driftYSpeed) * CONFIG.stars.far.driftYAmp;
+
+      nearStars.rotation.y += CONFIG.stars.near.rotYSpeed * dt;
+      nearStars.position.x = Math.sin(t * CONFIG.stars.near.driftXSpeed + CONFIG.stars.near.phaseOffset) * CONFIG.stars.near.driftXAmp;
+      nearStars.position.y = Math.cos(t * CONFIG.stars.near.driftYSpeed + CONFIG.stars.near.phaseOffset * 0.666) * CONFIG.stars.near.driftYAmp;
+
+      // Camera bob
+      camera.position.x = Math.sin(t * CONFIG.camera.bobXSpeed) * CONFIG.camera.bobXAmp;
+      camera.position.y = CONFIG.camera.basePos.y + Math.sin(t * CONFIG.camera.bobYSpeed) * CONFIG.camera.bobYAmp;
+      camera.lookAt(0, 0, 0);
 
       renderer!.render(scene, camera);
       frameIdRef.current = requestAnimationFrame(animate);
     };
     animate();
 
-    // === Resize Handling ===
-    const handleResize = () => {
-      if (!mount) return;
-      const newWidth = mount.clientWidth;
-      const newHeight = typeof height === "number" ? height : mount.clientHeight || 400;
-      renderer!.setSize(newWidth, newHeight);
-      camera.aspect = newWidth / newHeight;
-      camera.updateProjectionMatrix();
+    // Resize (RAF-throttled)
+    const onResize = () => {
+      if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current);
+      resizeRafRef.current = requestAnimationFrame(() => {
+        const { w: nw, h: nh } = getSize();
+        renderer!.setSize(nw, nh);
+        camera.aspect = nw / nh;
+        camera.updateProjectionMatrix();
+      });
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", onResize);
 
-    // === Cleanup ===
+    // Cleanup
     return () => {
       if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
-      window.removeEventListener("resize", handleResize);
+      if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current);
+      window.removeEventListener("resize", onResize);
 
-      dnaGroup.children.forEach((obj) => {
-        if ((obj as any).geometry) (obj as any).geometry.dispose();
-        if (Array.isArray((obj as any).material)) {
-          (obj as any).material.forEach((m: any) => m.dispose());
-        } else if ((obj as any).material) {
-          (obj as any).material.dispose();
-        }
-        scene.remove(obj);
-      });
-      scene.remove(dnaGroup);
+      disposeObject(starsGroup);
+      disposeObject(dnaGroup);
+      disposeObject(blackHoleGroup);
+      scene.remove(starsGroup, dnaGroup, blackHoleGroup);
 
-      starsGeometry.dispose();
-      starsMaterial.dispose();
-      scene.remove(starField);
-
-      blackHoleGroup.children.forEach((obj) => {
-        if ((obj as any).geometry) (obj as any).geometry.dispose();
-        if (Array.isArray((obj as any).material)) {
-          (obj as any).material.forEach((m: any) => m.dispose());
-        } else if ((obj as any).material) {
-          (obj as any).material.dispose();
-        }
-        blackHoleGroup.remove(obj);
-      });
-      scene.remove(blackHoleGroup);
-
-      if (rendererRef.current) {
-        rendererRef.current.dispose();
-        if (mount.contains(rendererRef.current.domElement)) {
-          mount.removeChild(rendererRef.current.domElement);
-        }
-        rendererRef.current = null;
+      rendererRef.current?.dispose();
+      if (rendererRef.current && mount.contains(rendererRef.current.domElement)) {
+        mount.removeChild(rendererRef.current.domElement);
       }
+      rendererRef.current = null;
+      sceneRef.current = null;
+      cameraRef.current = null;
     };
   }, [height]);
 
   return (
-  <header className={className} style={{ position: "relative", width: "100%", height }}>
-    {/* This div holds the 3D animation */}
-    <div
-      ref={mountRef}
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 0,
-        pointerEvents: "none",  // so clicks pass through to buttons
-      }}
-    />
-
-    {/* This div is your UI overlay on top of animation */}
-    {/* <div
-      style={{
-        position: "relative",
-        zIndex: 1,             // higher than animation div
-        height: "100%",
-        display: "flex",
-        justifyContent: "left",
-        alignItems: "center",
-        color: "white",
-        pointerEvents: "auto", // allow interaction here
-      }}
-    >
-      <button
-        onClick={() => alert("Hello from button!")}
+    <header className={className} style={{ position: "relative", width: "100%", height }}>
+      {/* 3D animation layer */}
+      <div
+        ref={mountRef}
         style={{
-          padding: "1rem 2rem",
-          fontSize: "1.2rem",
-          borderRadius: "8px",
-          border: "none",
-          backgroundColor: "#2196f3",
-          color: "white",
-          cursor: "pointer",
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* UI overlay layer (keep for future buttons / headings) */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          pointerEvents: "auto",
         }}
       >
-        Click Me
-      </button>
-    </div> */}
-  </header>
-);
-
+        {/* Overlay UI goes here */}
+        {/* <button>Click me</button> */}
+      </div>
+    </header>
+  );
 }
