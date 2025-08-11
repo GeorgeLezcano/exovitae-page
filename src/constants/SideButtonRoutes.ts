@@ -5,7 +5,8 @@ export const SideButtonRoutes = {
   Media: "media",
   FAQ: "faq",
   Feedback: "feedback",
-  About: "about"
+  About: "about",
+  Login: "login"
 } as const;
 
 export type SideButtonRoutes = typeof SideButtonRoutes[keyof typeof SideButtonRoutes];

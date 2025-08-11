@@ -5,6 +5,18 @@ Run this once after cloning the repository:
 ```sh
 npm install
 ```
+> Installs all required packages from `package.json`.
+
+**If you see an error like**  
+`Cannot find module 'three' or its corresponding type declarations`:  
+```sh
+npm install three
+npm install --save-dev @types/three
+```
+Then re-run:
+```sh
+npm run dev
+```
 
 ## 2️⃣ Run in Development Mode
 Start a local dev server with hot reload:

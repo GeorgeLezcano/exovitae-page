@@ -13,6 +13,7 @@ import FAQSection from "../sections/FAQSection";
 import FeedBackSection from "../sections/FeedBackSection";
 import AboutSection from "../sections/AboutSection";
 import { AnimatedHeader } from "../elements/AnimatedHeader";
+import LoginSection from "../sections/LoginSection";
 
 export function MainLayout() {
   const [selectedSection, setSelectedSection] = useState<string>(
@@ -37,6 +38,8 @@ export function MainLayout() {
         return <FeedBackSection />;
       case SideButtonRoutes.About:
         return <AboutSection />;
+      case SideButtonRoutes.Login:
+        return <LoginSection />;
       default:
         return <h1>Not Found</h1>;
     }

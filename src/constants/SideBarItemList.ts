@@ -9,6 +9,7 @@ export type SideBarItemList = {
 };
 
 export const sideBarItemList: SideBarItemList[] = [
+  {name: "Login", linkTo: SideButtonRoutes.Login},
   {name: "Game Overview", linkTo: SideButtonRoutes.GameOverview},
   {name: "Features", linkTo: SideButtonRoutes.Features},
   {name: "Media", linkTo: SideButtonRoutes.Media},
