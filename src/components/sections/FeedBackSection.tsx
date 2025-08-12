@@ -1,34 +1,84 @@
 import { useState } from "react";
+import { api } from "../../api/client";
+import { toast } from "react-toastify";
+
+type FeedbackRequest = {
+  name: string;
+  message: string;
+};
+
+type FeedbackResponse = {
+  id: string;
+  name: string;
+  message: string;
+  datePosted: string;
+};
 
 export default function FeedBackSection() {
   const [name, setName] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [nameError, setNameError] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
   const [generalError, setGeneralError] = useState("");
 
-  const handleSubmit = () => {
+  const NAME_MAX = 64;
+  const FEEDBACK_MAX = 1000;
+  const FEEDBACK_MIN = 10;
+
+  const handleSubmit = async () => {
     setNameError("");
     setFeedbackError("");
     setGeneralError("");
+    setLoading(true);
 
-    // Name required
-    if (!name.trim()) {
-      setNameError("Name is required.");
-    }
+    const cleanName = name.trim();
+    const cleanFeedback = feedback.trim();
 
-    // Feedback required + minimum length example
-    if (!feedback.trim()) {
-      setFeedbackError("Feedback is required.");
-    } else if (feedback.trim().length < 10) {
+    if (!cleanName) setNameError("Name is required.");
+    else if (cleanName.length > NAME_MAX) setNameError("Name is too long.");
+
+    if (!cleanFeedback) setFeedbackError("Feedback is required.");
+    else if (cleanFeedback.length < FEEDBACK_MIN)
       setFeedbackError("Please provide more detail.");
+    else if (cleanFeedback.length > FEEDBACK_MAX)
+      setFeedbackError("Feedback is too long.");
+
+    if (
+      !cleanName ||
+      !cleanFeedback ||
+      cleanName.length > NAME_MAX ||
+      cleanFeedback.length < FEEDBACK_MIN ||
+      cleanFeedback.length > FEEDBACK_MAX
+    ) {
+      setLoading(false);
+      return;
     }
 
-    // Stop on any field error
-    if (!name.trim() || !feedback.trim() || feedback.trim().length < 10) return;
+    try {
+      const response = await api.post<FeedbackResponse, FeedbackRequest>(
+        "/api/feedback",
+        {
+          name: cleanName,
+          message: cleanFeedback,
+        }
+      );
 
-    alert(`Feedback submitted! (demo)\nName: ${name}\nMessage: ${feedback}`);
+      setName("");
+      setFeedback("");
+
+      if (response) {
+        toast.success("Feedback submitted successfully!", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      }
+    } catch {
+      setGeneralError("Failed to submit feedback.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,6 +95,7 @@ export default function FeedBackSection() {
             onChange={(e) => setName(e.target.value)}
             aria-invalid={!!nameError}
             aria-describedby="name-error"
+            maxLength={NAME_MAX}
           />
           <span id="name-error" className="errorFloat">
             {nameError}
@@ -59,24 +110,28 @@ export default function FeedBackSection() {
             onChange={(e) => setFeedback(e.target.value)}
             aria-invalid={!!feedbackError}
             aria-describedby="feedback-error"
+            maxLength={FEEDBACK_MAX}
           />
           <span id="feedback-error" className="errorFloat">
             {feedbackError}
           </span>
         </div>
 
-        {/* Smaller, centered button (to match your preference) */}
         <button
           onClick={handleSubmit}
           className="sectionButton"
           style={{ alignSelf: "center" }}
+          disabled={loading}
         >
-          Submit
+          {loading ? "Submitting..." : "Submit"}
         </button>
 
-        {/* Reserved space under the button for any general errors */}
         <div className="generalErrorSlot" role="alert">
-          {generalError || "\u00A0"}
+          {loading ? (
+            <span className="spinner"></span>
+          ) : (
+            generalError && <span className="errorText">{generalError}</span>
+          )}
         </div>
       </div>
     </div>

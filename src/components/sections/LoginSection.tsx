@@ -1,35 +1,66 @@
 import { useState } from "react";
+import { api } from "../../api/client";
+
+type LoginRequest = {
+  username: string;
+  password: string;
+};
+
+type LoginResponse = {
+  token: string;
+  expiresIn: number;
+};
 
 export default function LoginSection() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
 
-  const handleLogin = () => {
-    // clear previous errors
+  const MaxAllowedCharaters = 64;
+
+  const handleLogin = async () => {
     setUsernameError("");
     setPasswordError("");
     setGeneralError("");
+    setLoading(true);
 
-    // simple client-side rules; replace with real validation later
-    if (!username) setUsernameError("Username is required.");
-    else if (username.length > 24) setUsernameError("Username is too long.");
+    const cleanUsername = username.trim();
+
+    if (!cleanUsername) setUsernameError("Username is required.");
+    else if (cleanUsername.length > MaxAllowedCharaters)
+      setUsernameError("Username is too long.");
 
     if (!password) setPasswordError("Password is required.");
+    else if (password.length > MaxAllowedCharaters)
+      setPasswordError("Password is too long.");
 
-    // stop if any field errors exist
-    if (!username || !password || username.length > 24) return;
-
-    // mock auth; replace with API call
-    if (username !== "admin" || password !== "1234") {
-      setGeneralError("Login failed.");
+    if (
+      !cleanUsername ||
+      !password ||
+      cleanUsername.length > MaxAllowedCharaters ||
+      password.length > MaxAllowedCharaters
+    ) {
+      setLoading(false);
       return;
     }
 
-    alert("Login successful! (demo)");
+    try {
+      const loginResponse = await api.post<LoginResponse, LoginRequest>(
+        "/api/auth/login",
+        { username: cleanUsername, password }
+      );
+
+      console.log(loginResponse);
+      // Do something later on successful login
+    } catch (err) {
+      setGeneralError("Login Failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,6 +77,7 @@ export default function LoginSection() {
             onChange={(e) => setUsername(e.target.value)}
             aria-invalid={!!usernameError}
             aria-describedby="username-error"
+            maxLength={MaxAllowedCharaters}
           />
           <span id="username-error" className="errorFloat">
             {usernameError}
@@ -61,6 +93,7 @@ export default function LoginSection() {
             onChange={(e) => setPassword(e.target.value)}
             aria-invalid={!!passwordError}
             aria-describedby="password-error"
+            maxLength={MaxAllowedCharaters}
           />
           <span id="password-error" className="errorFloat">
             {passwordError}
@@ -71,13 +104,17 @@ export default function LoginSection() {
           onClick={handleLogin}
           className="sectionButton"
           style={{ alignSelf: "center" }}
+          disabled={loading}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
-        {/* block-level, centered, announced by screen readers */}
         <div className="generalErrorSlot" role="alert">
-          {generalError}
+          {loading ? (
+            <span className="spinner"></span>
+          ) : (
+            generalError && <span className="errorText">{generalError}</span>
+          )}
         </div>
       </div>
     </div>
