@@ -78,7 +78,9 @@ export function MainLayout() {
 
         {sideBarItemList.map((item) => (
           <SideBarItem
-            className="sideBarItemButton"
+            className={`sideBarItemButton ${
+              selected === item.linkTo ? "selected" : ""
+            }`}
             key={item.name}
             name={item.name}
             onClick={() => handleSideButtonOnClick(item.linkTo)}
