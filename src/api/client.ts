@@ -1,30 +1,33 @@
-const BASE_URL = "http://localhost:5000"; //Temp url for local development
+const BASE_URL_DEV = "http://localhost:5000";
+
+let authToken: string | null = null;
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
 
 async function apiRequest<TResponse, TBody = undefined>(
   method: string,
   endpoint: string,
   body?: TBody
 ): Promise<TResponse> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
+
   const options: RequestInit = {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers,
   };
 
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
+  if (body) options.body = JSON.stringify(body);
 
-  const res = await fetch(`${BASE_URL}${endpoint}`, options);
+  const res = await fetch(`${BASE_URL_DEV}${endpoint}`, options);
 
-  // Try to parse JSON, fallback to null
   const data: TResponse = await res
     .json()
     .catch(() => null as unknown as TResponse);
-
-  if (!res.ok) {
-    throw data || { message: "Request failed" };
-  }
-
+  if (!res.ok) throw data || { message: "Request failed" };
   return data;
 }
 

@@ -1,47 +1,57 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
+import { useAuth } from "../../auth/AuthContext";
+import { PageRoutes } from "../../constants/PageRoutes";
+import { setAuthToken } from "../../api/client";
 
 type LoginRequest = {
-  username: string;
+  email: string;
   password: string;
 };
 
 type LoginResponse = {
-  token: string;
-  expiresIn: number;
+  token: string | null;
 };
 
+const EmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MaxAllowedCharaters = 64;
+
 export default function LoginSection() {
-  const [username, setUsername] = useState("");
+  const nav = useNavigate();
+  const { setToken } = useAuth();
+
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const [usernameError, setUsernameError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
 
-  const MaxAllowedCharaters = 64;
+  const cleanEmail = email.trim();
 
   const handleLogin = async () => {
-    setUsernameError("");
+    setEmailError("");
     setPasswordError("");
     setGeneralError("");
     setLoading(true);
 
-    const cleanUsername = username.trim();
-
-    if (!cleanUsername) setUsernameError("Username is required.");
-    else if (cleanUsername.length > MaxAllowedCharaters)
-      setUsernameError("Username is too long.");
+    if (!cleanEmail) {
+      setEmailError("Email is required.");
+    } else if (cleanEmail.length > MaxAllowedCharaters) {
+      setEmailError("Email is too long");
+    } else if (!EmailRegex.test(cleanEmail)) {
+      setEmailError("Email format is invalid.");
+    }
 
     if (!password) setPasswordError("Password is required.");
     else if (password.length > MaxAllowedCharaters)
       setPasswordError("Password is too long.");
 
     if (
-      !cleanUsername ||
+      !cleanEmail ||
       !password ||
-      cleanUsername.length > MaxAllowedCharaters ||
+      cleanEmail.length > MaxAllowedCharaters ||
       password.length > MaxAllowedCharaters
     ) {
       setLoading(false);
@@ -49,13 +59,23 @@ export default function LoginSection() {
     }
 
     try {
-      const loginResponse = await api.post<LoginResponse, LoginRequest>(
+      const res = await api.post<LoginResponse, LoginRequest>(
         "/api/auth/login",
-        { username: cleanUsername, password }
+        {
+          email: cleanEmail,
+          password,
+        }
       );
 
-      console.log(loginResponse);
-      // Do something later on successful login
+      if (!res.token) {
+        setGeneralError("Login succeeded but no token was returned.");
+        return;
+      }
+
+      setToken(res.token);
+      setAuthToken(res.token);
+
+      nav(PageRoutes.Dashboard, { replace: true });
     } catch (err) {
       setGeneralError("Login Failed");
     } finally {
@@ -70,17 +90,17 @@ export default function LoginSection() {
       <div className="formColumn">
         <div className="field">
           <input
-            className={`inputField ${usernameError ? "inputError" : ""}`}
-            placeholder="Username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            aria-invalid={!!usernameError}
+            className={`inputField ${emailError ? "inputError" : ""}`}
+            placeholder="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={!!emailError}
             aria-describedby="username-error"
             maxLength={MaxAllowedCharaters}
           />
           <span id="username-error" className="errorFloat">
-            {usernameError}
+            {emailError}
           </span>
         </div>
 

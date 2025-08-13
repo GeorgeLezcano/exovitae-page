@@ -1,4 +1,3 @@
-
 export const SideButtonRoutes = {
   GameOverview: "game-overview",
   Features: "features",
@@ -6,7 +5,8 @@ export const SideButtonRoutes = {
   FAQ: "faq",
   Feedback: "feedback",
   About: "about",
-  Login: "login"
+  Login: "login",
 } as const;
 
-export type SideButtonRoutes = typeof SideButtonRoutes[keyof typeof SideButtonRoutes];
+export type SideButtonRoutes =
+  (typeof SideButtonRoutes)[keyof typeof SideButtonRoutes];
