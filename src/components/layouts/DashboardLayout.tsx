@@ -10,6 +10,9 @@ import {
   dashboardItemList,
   type DashboardItem,
 } from "../../constants/DashboardtemList";
+import OverviewSection from "../sections/DashboardSections/OverviewSection";
+import ManageFeedbackSection from "../sections/DashboardSections/ManageFeedbackSection";
+import ManageFilesSection from "../sections/DashboardSections/ManageFilesSection";
 
 export default function DashboardLayout() {
   const { setToken } = useAuth();
@@ -51,19 +54,11 @@ export default function DashboardLayout() {
   const renderSection = () => {
     switch (selected) {
       case DashBoardButtonRoutes.Overview:
-        return (
-          <div style={{ width: "100%", maxWidth: 900 }}>
-            <h1>Overview</h1>
-          </div>
-        );
-
+        return <OverviewSection />;
       case DashBoardButtonRoutes.FeedBack:
-        return (
-          <div style={{ width: "100%", maxWidth: 900 }}>
-            <h1>Manage Feedback</h1>
-          </div>
-        );
-
+        return <ManageFeedbackSection />;
+      case DashBoardButtonRoutes.Files:
+        return <ManageFilesSection />;
       default:
         return <h1>Not Found</h1>;
     }
