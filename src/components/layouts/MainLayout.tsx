@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { sideBarItemList } from "../../constants/SideBarItemList";
 import "../../styles/main-layout.css";
 import { InfoView } from "../elements/InfoView";
@@ -13,18 +14,36 @@ import FAQSection from "../sections/FAQSection";
 import FeedBackSection from "../sections/FeedBackSection";
 import AboutSection from "../sections/AboutSection";
 import { AnimatedHeader } from "../elements/AnimatedHeader";
+import LoginSection from "../sections/LoginSection";
 
 export function MainLayout() {
-  const [selectedSection, setSelectedSection] = useState<string>(
-    SideButtonRoutes.GameOverview
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tabParamRaw = (searchParams.get("tab") || "").toLowerCase();
+  const validRoutes = Object.values(SideButtonRoutes);
+  const isValid = validRoutes.includes(
+    tabParamRaw as (typeof validRoutes)[number]
   );
 
-  const handleSideButtonOnClick = (linkTo: string) => {
-    setSelectedSection(linkTo);
+  useEffect(() => {
+    if (!isValid) {
+      setSearchParams(
+        { tab: SideButtonRoutes.GameOverview },
+        { replace: true }
+      );
+    }
+  }, [isValid, setSearchParams]);
+
+  const selected = isValid
+    ? (tabParamRaw as (typeof validRoutes)[number])
+    : SideButtonRoutes.GameOverview;
+
+  const handleSideButtonOnClick = (linkTo: (typeof validRoutes)[number]) => {
+    setSearchParams({ tab: linkTo }, { replace: true });
   };
 
   const renderSection = () => {
-    switch (selectedSection) {
+    switch (selected) {
       case SideButtonRoutes.GameOverview:
         return <GameOverviewSection />;
       case SideButtonRoutes.Features:
@@ -37,6 +56,8 @@ export function MainLayout() {
         return <FeedBackSection />;
       case SideButtonRoutes.About:
         return <AboutSection />;
+      case SideButtonRoutes.Login:
+        return <LoginSection />;
       default:
         return <h1>Not Found</h1>;
     }
@@ -57,12 +78,12 @@ export function MainLayout() {
 
         {sideBarItemList.map((item) => (
           <SideBarItem
-            className={`sideBarItemButton`}
+            className={`sideBarItemButton ${
+              selected === item.linkTo ? "selected" : ""
+            }`}
             key={item.name}
             name={item.name}
-            onClick={() => {
-              handleSideButtonOnClick(item.linkTo);
-            }}
+            onClick={() => handleSideButtonOnClick(item.linkTo)}
             disabled={item.disabled}
             tooltip={item.tooltip}
           />
@@ -70,7 +91,7 @@ export function MainLayout() {
       </SideBar>
 
       <div className="info-panel">
-        <AnimatedHeader height="40vh"></AnimatedHeader>
+        <AnimatedHeader height="40vh" />
         <InfoView className="details-view">{renderSection()}</InfoView>
       </div>
     </div>
