@@ -15,7 +15,7 @@ import ManageFeedbackSection from "../sections/DashboardSections/ManageFeedbackS
 import ManageFilesSection from "../sections/DashboardSections/ManageFilesSection";
 
 export default function DashboardLayout() {
-  const { setToken } = useAuth();
+  const { setToken, username, setUsername } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabParamRaw = (searchParams.get("tab") || "").toLowerCase();
@@ -44,6 +44,7 @@ export default function DashboardLayout() {
   const handleLogout = () => {
     setAuthToken(null);
     setToken(null);
+    setUsername(null);
     window.location.assign(
       `${PageRoutes.Homepage}?${createSearchParams({
         tab: SideButtonRoutes.Login,
@@ -78,6 +79,7 @@ export default function DashboardLayout() {
           }}
         >
           <img
+            src="default_profile_icon.png"
             style={{
               width: "80px",
               height: "80px",
@@ -85,9 +87,10 @@ export default function DashboardLayout() {
               marginBottom: "0.5rem",
               border: "2px solid #2196f3",
             }}
+            alt="Profile"
           />
           <div style={{ fontSize: "1rem", fontWeight: "bold", color: "#fff" }}>
-            User Name
+            {username ?? ""}
           </div>
         </div>
 

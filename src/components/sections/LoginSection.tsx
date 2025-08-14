@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../api/client";
+import { api, setAuthToken } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { PageRoutes } from "../../constants/PageRoutes";
-import { setAuthToken } from "../../api/client";
 
 type LoginRequest = {
   email: string;
@@ -12,6 +11,7 @@ type LoginRequest = {
 
 type LoginResponse = {
   token: string | null;
+  username: string | null;
 };
 
 const EmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,7 +19,7 @@ const MaxAllowedCharaters = 64;
 
 export default function LoginSection() {
   const nav = useNavigate();
-  const { setToken } = useAuth();
+  const { setToken, setUsername } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,9 +44,11 @@ export default function LoginSection() {
       setEmailError("Email format is invalid.");
     }
 
-    if (!password) setPasswordError("Password is required.");
-    else if (password.length > MaxAllowedCharaters)
+    if (!password) {
+      setPasswordError("Password is required.");
+    } else if (password.length > MaxAllowedCharaters) {
       setPasswordError("Password is too long.");
+    }
 
     if (
       !cleanEmail ||
@@ -74,9 +76,10 @@ export default function LoginSection() {
 
       setToken(res.token);
       setAuthToken(res.token);
+      setUsername(res.username ?? null);
 
       nav(PageRoutes.Dashboard, { replace: true });
-    } catch (err) {
+    } catch {
       setGeneralError("Login Failed");
     } finally {
       setLoading(false);
