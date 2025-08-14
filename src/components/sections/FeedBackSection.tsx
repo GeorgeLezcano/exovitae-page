@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 type FeedbackRequest = {
   name: string;
   message: string;
-  rating: number; // required
+  rating: number;
 };
 
 type FeedbackResponse = {
@@ -16,8 +16,6 @@ type FeedbackResponse = {
   rating?: number;
 };
 
-// --- Reusable Star Rating (controlled) ---
-// No hover preview: stars reflect only the selected value.
 function StarRating({
   value,
   onChange,
@@ -76,14 +74,7 @@ function StarRating({
                 }
               }}
               title={`${n} star${n > 1 ? "s" : ""}`}
-              className="starButton"
-              style={{
-                /* keep exact colors you validated */
-                color: filled ? "#ffd166" : "#a8cfff",
-                filter: filled
-                  ? "drop-shadow(0 0 2px rgba(255,209,102,0.5))"
-                  : "none",
-              }}
+              className={`starButton ${filled ? "isFilled" : ""}`}
             >
               {filled ? "★" : "☆"}
             </button>
@@ -103,7 +94,7 @@ function StarRating({
 export default function FeedBackSection() {
   const [name, setName] = useState("");
   const [feedback, setFeedback] = useState("");
-  const [rating, setRating] = useState<number | "">(""); // required
+  const [rating, setRating] = useState<number | "">("");
   const [loading, setLoading] = useState(false);
 
   const [nameError, setNameError] = useState("");
@@ -177,66 +168,68 @@ export default function FeedBackSection() {
   };
 
   return (
-    <div className="formContainer">
-      <h1>Game Feedback</h1>
+    <div className="sectionShell">
+      <section className="sectionCard">
+        <h1 className="pageTitle">Game Feedback</h1>
+        <div className="accentDivider" />
 
-      <div className="formColumn">
-        <div className="field">
-          <input
-            className={`inputField ${nameError ? "inputError" : ""}`}
-            placeholder="Name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            aria-invalid={!!nameError}
-            aria-describedby="name-error"
-            maxLength={NAME_MAX}
+        <div className="formColumn formColumnWide">
+          <div className="field">
+            <input
+              className={`inputField ${nameError ? "inputError" : ""}`}
+              placeholder="Name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              aria-invalid={!!nameError}
+              aria-describedby="name-error"
+              maxLength={NAME_MAX}
+            />
+            <span id="name-error" className="errorFloat">
+              {nameError}
+            </span>
+          </div>
+
+          <StarRating
+            value={rating}
+            onChange={(n) => setRating(n)}
+            error={ratingError}
+            ariaDescribedBy="rating-error"
           />
-          <span id="name-error" className="errorFloat">
-            {nameError}
-          </span>
+
+          <div className="field">
+            <textarea
+              className={`inputFieldLarge ${feedbackError ? "inputError" : ""}`}
+              placeholder="Your feedback..."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              aria-invalid={!!feedbackError}
+              aria-describedby="feedback-error"
+              maxLength={FEEDBACK_MAX}
+            />
+            <span id="feedback-error" className="errorFloat">
+              {feedbackError}
+            </span>
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            className="sectionButton"
+            style={{ alignSelf: "center" }}
+            disabled={loading}
+          >
+            {loading ? "Submitting..." : "Submit"}
+          </button>
+
+          <div className="generalErrorSlot" role="alert">
+            {loading ? (
+              <span className="spinner"></span>
+            ) : (
+              generalError && <span className="errorText">{generalError}</span>
+            )}
+          </div>
         </div>
-
-        {/* Rating between Name and Message */}
-        <StarRating
-          value={rating}
-          onChange={(n) => setRating(n)}
-          error={ratingError}
-          ariaDescribedBy="rating-error"
-        />
-
-        <div className="field">
-          <textarea
-            className={`inputFieldLarge ${feedbackError ? "inputError" : ""}`}
-            placeholder="Your feedback..."
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            aria-invalid={!!feedbackError}
-            aria-describedby="feedback-error"
-            maxLength={FEEDBACK_MAX}
-          />
-          <span id="feedback-error" className="errorFloat">
-            {feedbackError}
-          </span>
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          className="sectionButton"
-          style={{ alignSelf: "center" }}
-          disabled={loading}
-        >
-          {loading ? "Submitting..." : "Submit"}
-        </button>
-
-        <div className="generalErrorSlot" role="alert">
-          {loading ? (
-            <span className="spinner"></span>
-          ) : (
-            generalError && <span className="errorText">{generalError}</span>
-          )}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

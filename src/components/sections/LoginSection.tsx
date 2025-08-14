@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, setAuthToken } from "../../api/client";
+import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { PageRoutes } from "../../constants/PageRoutes";
 
@@ -12,14 +12,15 @@ type LoginRequest = {
 type LoginResponse = {
   token: string | null;
   username: string | null;
+  role: string | null;
 };
 
 const EmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MaxAllowedCharaters = 64;
+const MaxAllowedCharacters = 64;
 
 export default function LoginSection() {
   const nav = useNavigate();
-  const { setToken, setUsername } = useAuth();
+  const { setToken, setUsername, setRole } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,33 +29,33 @@ export default function LoginSection() {
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
 
-  const cleanEmail = email.trim();
-
   const handleLogin = async () => {
     setEmailError("");
     setPasswordError("");
     setGeneralError("");
     setLoading(true);
 
+    const cleanEmail = email.trim();
+
     if (!cleanEmail) {
       setEmailError("Email is required.");
-    } else if (cleanEmail.length > MaxAllowedCharaters) {
-      setEmailError("Email is too long");
+    } else if (cleanEmail.length > MaxAllowedCharacters) {
+      setEmailError("Email is too long.");
     } else if (!EmailRegex.test(cleanEmail)) {
       setEmailError("Email format is invalid.");
     }
 
     if (!password) {
       setPasswordError("Password is required.");
-    } else if (password.length > MaxAllowedCharaters) {
+    } else if (password.length > MaxAllowedCharacters) {
       setPasswordError("Password is too long.");
     }
 
     if (
       !cleanEmail ||
       !password ||
-      cleanEmail.length > MaxAllowedCharaters ||
-      password.length > MaxAllowedCharaters
+      cleanEmail.length > MaxAllowedCharacters ||
+      password.length > MaxAllowedCharacters
     ) {
       setLoading(false);
       return;
@@ -75,71 +76,94 @@ export default function LoginSection() {
       }
 
       setToken(res.token);
-      setAuthToken(res.token);
       setUsername(res.username ?? null);
+      setRole(res.role ?? null);
 
       nav(PageRoutes.Dashboard, { replace: true });
-    } catch {
-      setGeneralError("Login Failed");
+    } catch (err: unknown) {
+      const anyErr = err as { response?: { data?: any; status?: number } };
+
+      if (anyErr?.response?.status === 400 && anyErr.response.data?.errors) {
+        const errors = anyErr.response.data.errors as Record<string, string[]>;
+        if (errors.email?.length) setEmailError(errors.email[0]);
+        if (errors.password?.length) setPasswordError(errors.password[0]);
+        if (errors.general?.length) setGeneralError(errors.general[0]);
+        if (
+          !errors.email?.length &&
+          !errors.password?.length &&
+          !errors.general?.length
+        ) {
+          setGeneralError("Invalid input.");
+        }
+      } else if (anyErr?.response?.status === 401) {
+        setGeneralError("Invalid email or password.");
+      } else {
+        setGeneralError("Login failed. Please try again.");
+      }
+
+      setPassword("");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="formContainer">
-      <h1>Login</h1>
+    <div className="sectionShell">
+      <section className="sectionCard">
+        <h1 className="pageTitle">Login</h1>
+        <div className="accentDivider" />
 
-      <div className="formColumn">
-        <div className="field">
-          <input
-            className={`inputField ${emailError ? "inputError" : ""}`}
-            placeholder="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            aria-invalid={!!emailError}
-            aria-describedby="username-error"
-            maxLength={MaxAllowedCharaters}
-          />
-          <span id="username-error" className="errorFloat">
-            {emailError}
-          </span>
+        <div className="formColumn formColumnWide">
+          <div className="field">
+            <input
+              className={`inputField ${emailError ? "inputError" : ""}`}
+              placeholder="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-invalid={!!emailError}
+              aria-describedby="email-error"
+              maxLength={MaxAllowedCharacters}
+            />
+            <span id="email-error" className="errorFloat">
+              {emailError}
+            </span>
+          </div>
+
+          <div className="field">
+            <input
+              className={`inputField ${passwordError ? "inputError" : ""}`}
+              placeholder="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              aria-invalid={!!passwordError}
+              aria-describedby="password-error"
+              maxLength={MaxAllowedCharacters}
+            />
+            <span id="password-error" className="errorFloat">
+              {passwordError}
+            </span>
+          </div>
+
+          <button
+            onClick={handleLogin}
+            className="sectionButton"
+            style={{ alignSelf: "center" }}
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+
+          <div className="generalErrorSlot" role="alert">
+            {loading ? (
+              <span className="spinner"></span>
+            ) : (
+              generalError && <span className="errorText">{generalError}</span>
+            )}
+          </div>
         </div>
-
-        <div className="field">
-          <input
-            className={`inputField ${passwordError ? "inputError" : ""}`}
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-invalid={!!passwordError}
-            aria-describedby="password-error"
-            maxLength={MaxAllowedCharaters}
-          />
-          <span id="password-error" className="errorFloat">
-            {passwordError}
-          </span>
-        </div>
-
-        <button
-          onClick={handleLogin}
-          className="sectionButton"
-          style={{ alignSelf: "center" }}
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-
-        <div className="generalErrorSlot" role="alert">
-          {loading ? (
-            <span className="spinner"></span>
-          ) : (
-            generalError && <span className="errorText">{generalError}</span>
-          )}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

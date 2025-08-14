@@ -5,29 +5,37 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+
 async function apiRequest<TResponse, TBody = undefined>(
-  method: string,
+  method: HttpMethod,
   endpoint: string,
   body?: TBody
 ): Promise<TResponse> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    Accept: "application/json",
   };
   if (authToken) headers.Authorization = `Bearer ${authToken}`;
 
-  const options: RequestInit = {
-    method,
-    headers,
-  };
+  const options: RequestInit = { method, headers };
 
-  if (body) options.body = JSON.stringify(body);
+  if (body !== undefined) options.body = JSON.stringify(body);
 
   const res = await fetch(`${BASE_URL_DEV}${endpoint}`, options);
+
+  if (res.status === 204) {
+    return null as unknown as TResponse;
+  }
 
   const data: TResponse = await res
     .json()
     .catch(() => null as unknown as TResponse);
-  if (!res.ok) throw data || { message: "Request failed" };
+
+  if (!res.ok) {
+    throw (data as unknown) || { message: "Request failed" };
+  }
+
   return data;
 }
 

@@ -1,13 +1,15 @@
-/* Global reset */
+/* =========================================================
+   Global reset
+   ========================================================= */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* ===============================
+/* =========================================================
    Layout
-   =============================== */
+   ========================================================= */
 .main-layout {
   display: flex;
   height: 100vh;
@@ -65,9 +67,9 @@
   align-items: center;
 }
 
-/* ===============================
+/* =========================================================
    Buttons
-   =============================== */
+   ========================================================= */
 .sideBarItemButton {
   background-color: rgba(33, 150, 243, 0.1);
   color: #a8cfff;
@@ -130,9 +132,44 @@
   text-align: center;
 }
 
-/* ===============================
+/* =========================================================
    Forms & Inputs
-   =============================== */
+   ========================================================= */
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 4rem;
+  padding-inline: 2rem;
+  gap: 1rem;
+  min-height: 100vh;
+}
+
+.formColumn {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0 auto;
+}
+
+/* Wider variant when inside section cards */
+.formColumn.formColumnWide {
+  max-width: 700px;
+}
+
+/* Each field stacks label/control/hint and centers the control row */
+.field {
+  position: relative;
+  padding-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* <-- center inputs, textarea, stars */
+  width: 100%;
+}
+
 .inputField {
   padding: 0.75rem 1rem;
   width: 100%;
@@ -163,36 +200,9 @@
   resize: vertical;
 }
 
-.formColumn {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  margin: 0 auto;
-}
-
-.formContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 4rem;
-  padding-inline: 2rem;
-  gap: 1rem;
-  min-height: 100vh;
-}
-
-/* ===============================
+/* =========================================================
    Error Handling
-   =============================== */
-.field {
-  position: relative;
-  padding-bottom: 2rem;
-  display: flex;
-  flex-direction: column;
-}
-
+   ========================================================= */
 .errorFloat {
   margin-top: auto;
   align-self: center;
@@ -200,6 +210,7 @@
   line-height: 1.25rem;
   font-size: 0.9rem;
   color: red;
+  text-align: center;
 }
 
 .generalErrorSlot {
@@ -213,10 +224,9 @@
   color: red;
 }
 
-/* ===============================
+/* =========================================================
    Widgets
-   =============================== */
-
+   ========================================================= */
 .spinner {
   border: 3px solid rgba(0, 0, 0, 0.1);
   border-left-color: #2196f3;
@@ -233,19 +243,38 @@
   }
 }
 
-/* Width containers */
-.w-100 { width: 100%; }
-.max-900 { max-width: 900px; }
+/* =========================================================
+   Utilities
+   ========================================================= */
+.w-100 {
+  width: 100%;
+}
+.max-900 {
+  max-width: 900px;
+}
 
-/* Simple stacks */
-.stack-v { display: flex; flex-direction: column; }
-.stack-h { display: flex; align-items: center; }
-.gap-4 { gap: 0.25rem; }
-.gap-8 { gap: 0.5rem; }
-.gap-12 { gap: 0.75rem; }
-.gap-16 { gap: 1rem; }
+.stack-v {
+  display: flex;
+  flex-direction: column;
+}
+.stack-h {
+  display: flex;
+  align-items: center;
+}
 
-/* Toolbar/header row */
+.gap-4 {
+  gap: 0.25rem;
+}
+.gap-8 {
+  gap: 0.5rem;
+}
+.gap-12 {
+  gap: 0.75rem;
+}
+.gap-16 {
+  gap: 1rem;
+}
+
 .sectionHeader {
   display: flex;
   align-items: center;
@@ -253,8 +282,10 @@
   margin-bottom: 0.75rem;
 }
 
-/* Subtle meta text */
-.metaSubtle { font-size: 0.9rem; color: #a8cfff; }
+.metaSubtle {
+  font-size: 0.9rem;
+  color: #a8cfff;
+}
 
 /* Card/list visuals */
 .card {
@@ -264,7 +295,9 @@
   padding: 1rem;
   background-color: rgba(33, 150, 243, 0.05);
 }
-.card + .card { margin-top: 1rem; }
+.card + .card {
+  margin-top: 1rem;
+}
 
 .cardHeader {
   display: flex;
@@ -274,13 +307,24 @@
   gap: 1rem;
 }
 
-.cardBody { white-space: pre-wrap; }
+.cardBody {
+  white-space: pre-wrap;
+}
 
-/* List container */
-.listStack { width: 100%; margin-top: 0.5rem; }
+.listStack {
+  width: 100%;
+  margin-top: 0.5rem;
+}
 
-/* Stars */
-.starsRow { display: inline-flex; align-items: center; gap: 0.25rem; }
+/* =========================================================
+   Stars (Feedback)
+   ========================================================= */
+.starsRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .starButton {
   background: transparent;
   border: none;
@@ -290,10 +334,68 @@
   padding: 0.1rem 0.2rem;
   outline: none;
 }
+
+.starButton.isFilled {
+  color: #a8d9ff;
+  filter: drop-shadow(0 0 2px rgba(33, 150, 243, 0.5));
+}
+
+.starButton:not(.isFilled) {
+  color: #a8cfff;
+}
+
 .starValue {
   margin-left: 0.5rem;
   font-size: 0.95rem;
   color: #a8cfff;
-  min-width: 90px; 
+  min-width: 90px;
   display: inline-block;
+  text-align: left;
+}
+
+/* =========================================================
+   Responsive Section Shell (shared layout for pages)
+   ========================================================= */
+.sectionShell {
+  width: 100%;
+  padding: clamp(1rem, 2vw, 2rem) 0;
+  display: flex;
+  justify-content: center;
+}
+
+.sectionCard {
+  width: 100%;
+  max-width: clamp(700px, 85vw, 1400px);
+  margin: 0 auto;
+  padding: clamp(1rem, 2vw, 2rem) clamp(1rem, 4vw, 3rem);
+  background-color: rgba(33, 150, 243, 0.05);
+  border: 1px solid #2196f3;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.pageTitle {
+  text-align: center;
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  color: #a8d9ff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.pageSubtitle {
+  text-align: center;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  margin: 0 0 1.25rem 0;
+  font-weight: 400;
+  font-style: italic;
+  color: #a8cfff;
+}
+
+.accentDivider {
+  height: 3px;
+  width: 80px;
+  background: #2196f3;
+  margin: 0.25rem auto 1.5rem auto;
+  border-radius: 2px;
 }

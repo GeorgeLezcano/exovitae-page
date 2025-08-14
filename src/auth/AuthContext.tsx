@@ -12,12 +12,15 @@ type AuthContextType = {
   setToken: (t: string | null) => void;
   username: string | null;
   setUsername: (u: string | null) => void;
+  role: string | null;
+  setRole: (r: string | null) => void;
 };
 
 const AuthContext = createContext<AuthContextType>(null!);
 
 const TOKEN_KEY = "auth.token";
 const USERNAME_KEY = "auth.username";
+const ROLE_KEY = "auth.role";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, _setToken] = useState<string | null>(() =>
@@ -25,6 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
   const [username, _setUsername] = useState<string | null>(() =>
     localStorage.getItem(USERNAME_KEY)
+  );
+  const [role, _setRole] = useState<string | null>(() =>
+    localStorage.getItem(ROLE_KEY)
   );
 
   useEffect(() => {
@@ -43,9 +49,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     else localStorage.removeItem(USERNAME_KEY);
   };
 
+  const setRole = (r: string | null) => {
+    _setRole(r);
+    if (r) localStorage.setItem(ROLE_KEY, r);
+    else localStorage.removeItem(ROLE_KEY);
+  };
+
   const value = useMemo(
-    () => ({ token, setToken, username, setUsername }),
-    [token, username]
+    () => ({ token, setToken, username, setUsername, role, setRole }),
+    [token, username, role]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

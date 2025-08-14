@@ -67,9 +67,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="main-layout">
-      {/* Sidebar */}
       <aside className="side-bar">
-        {/* Profile */}
         <div
           style={{
             display: "flex",
@@ -110,9 +108,7 @@ export default function DashboardLayout() {
         ))}
       </aside>
 
-      {/* Right panel */}
       <section className="info-panel">
-        {/* Header */}
         <header className="header" style={{ width: "100%" }}>
           <div
             style={{
@@ -133,8 +129,6 @@ export default function DashboardLayout() {
             </button>
           </div>
         </header>
-
-        {/* Content */}
         <div className="details-view">{renderSection()}</div>
       </section>
     </div>

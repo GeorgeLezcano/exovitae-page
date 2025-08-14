@@ -14,12 +14,14 @@ export default function ProtectedRoute() {
 
   if (token) return <Outlet />;
 
+  const redirectSearch = createSearchParams({
+    tab: SideButtonRoutes.Login,
+  }).toString();
+  const to = { pathname: PageRoutes.Homepage, search: `?${redirectSearch}` };
+
   return (
     <Navigate
-      to={{
-        pathname: PageRoutes.Homepage,
-        search: `?${createSearchParams({ tab: SideButtonRoutes.Login })}`,
-      }}
+      to={to}
       replace
       state={{ from: location.pathname + location.search }}
     />
