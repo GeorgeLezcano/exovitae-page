@@ -1,4 +1,4 @@
-const BASE_URL_DEV = "http://api.exovitae.net";
+const BASE_URL_DEV = "https://api.exovitae.net";
 
 let authToken: string | null = null;
 export function setAuthToken(token: string | null) {
