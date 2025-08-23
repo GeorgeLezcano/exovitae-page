@@ -13,6 +13,7 @@ import {
 import OverviewSection from "../sections/DashboardSections/OverviewSection";
 import ManageFeedbackSection from "../sections/DashboardSections/ManageFeedbackSection";
 import ManageFilesSection from "../sections/DashboardSections/ManageFilesSection";
+import HealthStatus from "../elements/HealthStatus";
 
 export default function DashboardLayout() {
   const { setToken, username, setUsername } = useAuth();
@@ -109,25 +110,19 @@ export default function DashboardLayout() {
       </aside>
 
       <section className="info-panel">
-        <header className="header" style={{ width: "100%" }}>
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-            }}
+        <header
+          className="header"
+          style={{ width: "100%", position: "relative", minHeight: 96 }}
+        >
+          <button
+            className="sectionButton"
+            onClick={handleLogout}
+            aria-label="Logout"
+            style={{ position: "absolute", top: 8, left: 8, zIndex: 10 }}
           >
-            <div style={{ flex: 1 }}>Header stuff here</div>
-
-            <button
-              className="sectionButton"
-              onClick={handleLogout}
-              aria-label="Logout"
-            >
-              Logout
-            </button>
-          </div>
+            Logout
+          </button>
+          <HealthStatus />
         </header>
         <div className="details-view">{renderSection()}</div>
       </section>
