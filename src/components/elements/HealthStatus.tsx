@@ -11,6 +11,7 @@ type HealthResponse = {
 
 const POLL_MS = 15000;
 const TIMEOUT_MS = 6000;
+const OVERALL_LABEL = "System";
 
 function isHealthy(s?: string) {
   return (s ?? "").toLowerCase().includes("healthy");
@@ -21,39 +22,24 @@ function colorForHealthy(healthy: boolean | null) {
   return healthy ? "#16a34a" : "#dc2626";
 }
 
-function Dot({ healthy }: { healthy: boolean | null }) {
-  return (
-    <span
-      aria-hidden
-      style={{
-        width: 12,
-        height: 12,
-        borderRadius: "50%",
-        background: colorForHealthy(healthy),
-        display: "inline-block",
-      }}
-    />
-  );
-}
-
 function Row({ name, healthy }: { name: string; healthy: boolean | null }) {
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 10,
-        fontSize: 14,
+        gap: 4,
+        fontSize: 20,
         lineHeight: 1.2,
       }}
     >
-      <Dot healthy={healthy} />
-      <span style={{ color: "#cbd5e1", minWidth: 86 }}>{name}:</span>
+      <span style={{ color: "#cbd5e1", whiteSpace: "nowrap" }}>{name}:</span>
       <span
         style={{
           color: colorForHealthy(healthy),
           fontWeight: 700,
           letterSpacing: 0.2,
+          whiteSpace: "nowrap",
         }}
       >
         {healthy === null ? "—" : healthy ? "Healthy" : "Unhealthy"}
@@ -195,16 +181,17 @@ export default function HealthStatus() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "0.6rem",
+        gap: "0.7rem",
         pointerEvents: "none",
         maxWidth: "90%",
+        fontSize: 16,
       }}
     >
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "1.5rem",
+          gap: "1.25rem",
           flexWrap: "wrap",
           justifyContent: "center",
           pointerEvents: "auto",
@@ -217,19 +204,20 @@ export default function HealthStatus() {
             display: "inline-flex",
             alignItems: "center",
             gap: "0.6rem",
-            padding: "0.45rem 0.8rem",
+            padding: "0.5rem 0.9rem",
             borderRadius: 999,
             border: `1px solid ${pillColor}`,
             color: pillColor,
             fontWeight: 800,
-            fontSize: 15,
+            fontSize: 16,
             userSelect: "none",
             opacity: loading ? 0.8 : 1,
             letterSpacing: 0.2,
           }}
         >
-          <Dot healthy={pillHealthy} />
-          <span>Cluster: {pillLabel}</span>
+          <span>
+            {OVERALL_LABEL}: {pillLabel}
+          </span>
           {latencyMs !== null && (
             <span
               style={{
@@ -245,11 +233,11 @@ export default function HealthStatus() {
           )}
         </div>
 
-        <Row name="Server" healthy={derived.server} />
+        <Row name="API" healthy={derived.server} />
         <Row name="Database" healthy={derived.db} />
         <Row name="MinIO" healthy={derived.minio} />
 
-        <div style={{ color: "#94a3b8", fontSize: 13 }}>
+        <div style={{ color: "#94a3b8", fontSize: 14 }}>
           {data?.timestamp ? new Date(data.timestamp).toLocaleString() : "—"}
         </div>
       </div>
@@ -259,12 +247,12 @@ export default function HealthStatus() {
           className="errorText"
           style={{
             marginTop: "0.2rem",
-            padding: "0.35rem 0.6rem",
+            padding: "0.4rem 0.65rem",
             borderRadius: 8,
             border: "1px solid #7f1d1d",
             background: "rgba(127,29,29,0.25)",
             color: "#fecaca",
-            fontSize: 12,
+            fontSize: 13,
             lineHeight: 1.2,
             maxWidth: 700,
             pointerEvents: "auto",
@@ -279,7 +267,7 @@ export default function HealthStatus() {
           style={{
             marginTop: "0.2rem",
             color: pillHealthy ? "#86efac" : "#fca5a5",
-            fontSize: 13,
+            fontSize: 20,
             fontWeight: 700,
             pointerEvents: "auto",
           }}

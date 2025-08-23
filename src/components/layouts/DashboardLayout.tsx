@@ -14,6 +14,8 @@ import OverviewSection from "../sections/DashboardSections/OverviewSection";
 import ManageFeedbackSection from "../sections/DashboardSections/ManageFeedbackSection";
 import ManageFilesSection from "../sections/DashboardSections/ManageFilesSection";
 import HealthStatus from "../elements/HealthStatus";
+import RegistrationSection from "../sections/DashboardSections/RegistrationSection";
+import UserManagementSection from "../sections/DashboardSections/UserManagementSection";
 
 export default function DashboardLayout() {
   const { setToken, username, setUsername } = useAuth();
@@ -56,11 +58,23 @@ export default function DashboardLayout() {
   const renderSection = () => {
     switch (selected) {
       case DashBoardButtonRoutes.Overview:
-        return <OverviewSection />;
+        return (
+          <OverviewSection
+            username={
+              username
+                ? username.charAt(0).toUpperCase() + username.slice(1)
+                : null
+            }
+          />
+        );
       case DashBoardButtonRoutes.FeedBack:
         return <ManageFeedbackSection />;
       case DashBoardButtonRoutes.Files:
         return <ManageFilesSection />;
+      case DashBoardButtonRoutes.Register:
+        return <RegistrationSection />;
+      case DashBoardButtonRoutes.Users:
+        return <UserManagementSection />;
       default:
         return <h1>Not Found</h1>;
     }
@@ -89,10 +103,15 @@ export default function DashboardLayout() {
             alt="Profile"
           />
           <div style={{ fontSize: "1rem", fontWeight: "bold", color: "#fff" }}>
-            {username ?? ""}
+            <div
+              style={{ fontSize: "1rem", fontWeight: "bold", color: "#fff" }}
+            >
+              {username
+                ? username.charAt(0).toUpperCase() + username.slice(1)
+                : ""}
+            </div>
           </div>
         </div>
-
         {dashboardItemList.map((item: DashboardItem) => (
           <button
             key={item.name}
