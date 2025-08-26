@@ -1,44 +1,12 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-
-type FileMeta = {
-  id: string;
-  name: string;
-  description?: string;
-  type: string;
-  extension: string;
-  sizeBytes: number;
-  uploadedAt: string;
-};
-
-const demoFiles: FileMeta[] = [
-  {
-    id: "f_01a2b3c4",
-    name: "image1",
-    description: "Some Random image",
-    type: "image/png",
-    extension: "png",
-    sizeBytes: 1_234_567,
-    uploadedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-  {
-    id: "f_05aa22dd",
-    name: "SomeDocument",
-    description: "Stuff",
-    type: "application/pdf",
-    extension: "pdf",
-    sizeBytes: 3_456_789,
-    uploadedAt: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
-  },
-  {
-    id: "f_9988ff00",
-    name: "SomeData",
-    description: "Sample CSV export",
-    type: "text/csv",
-    extension: "csv",
-    sizeBytes: 456_789,
-    uploadedAt: new Date(Date.now() - 1000 * 60 * 7).toISOString(),
-  },
-];
+import { api } from "../../../api/client";
+import { useAuth } from "../../../auth/AuthContext";
+import {
+  type FileMeta,
+  type FileMetadataDto,
+  type PagedResultDto,
+  mapDtoToFileMeta,
+} from "../../../types/files";
 
 function formatBytes(n: number | undefined): string {
   if (!n || n <= 0) return "0 B";
@@ -52,17 +20,33 @@ function formatBytes(n: number | undefined): string {
 }
 
 export default function ManageFilesSection() {
-  const [useDemo, setUseDemo] = useState(true);
-  const [files, setFiles] = useState<FileMeta[]>(demoFiles);
+  const { role } = useAuth();
+  const isAdmin = (role || "").toLowerCase() === "admin";
+
+  const [files, setFiles] = useState<FileMeta[]>([]);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const toggleDemo = (checked: boolean) => {
-    setUseDemo(checked);
-    setSelected(new Set());
-    setFiles(checked ? demoFiles : []);
+  const pageSize = 100;
+
+  const fetchFiles = async () => {
+    setLoading(true);
+    try {
+      const data = await api.get<PagedResultDto<FileMetadataDto>>(
+        `/api/files?page=1&pageSize=${pageSize}`
+      );
+      const items = (data?.items || []).map(mapDtoToFileMeta);
+      setFiles(items);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchFiles();
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -83,26 +67,74 @@ export default function ManageFilesSection() {
 
   const allSelected =
     filtered.length > 0 && filtered.every((f) => selected.has(f.id));
+
   const toggleSelectAll = () => {
+    const next = new Set(selected);
     if (allSelected) {
-      const next = new Set(selected);
       filtered.forEach((f) => next.delete(f.id));
-      setSelected(next);
     } else {
-      const next = new Set(selected);
       filtered.forEach((f) => next.add(f.id));
-      setSelected(next);
     }
+    setSelected(next);
   };
 
   const toggleRow = (id: string) => {
     const next = new Set(selected);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
+    next.has(id) ? next.delete(id) : next.add(id);
     setSelected(next);
   };
 
-  const disabledBecauseNoAPI = true;
+  const handleDeleteSelected = async () => {
+    if (!isAdmin || selected.size === 0) return;
+    const ids = Array.from(selected);
+    await Promise.allSettled(
+      ids.map((id) => api.delete<void>(`/api/files/${id}`))
+    );
+    setSelected(new Set());
+    fetchFiles();
+  };
+
+  const handlePreview = async (id: string) => {
+    try {
+      const blob = await api.getBlob(`/api/files/${id}`); 
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch {
+
+    }
+  };
+
+  const handleDownload = async (id: string, suggestedName: string) => {
+    try {
+      const blob = await api.getBlob(`/api/files/${id}?download=true`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = suggestedName || `${id}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch {
+
+    }
+  };
+
+  const handleToggleVisibility = async (f: FileMeta) => {
+    if (!isAdmin) return;
+    try {
+      const newVal = !f.isPublic;
+      await api.patch<void, undefined>(
+        `/api/files/${f.id}/visibility/${newVal}`
+      );
+      setFiles((cur) =>
+        cur.map((x) => (x.id === f.id ? { ...x, isPublic: newVal } : x))
+      );
+    } catch {
+  
+    }
+  };
 
   return (
     <div className="sectionShell">
@@ -119,26 +151,11 @@ export default function ManageFilesSection() {
               <strong>{files.length}</strong> file
               {files.length !== 1 ? "s" : ""} •{" "}
               <strong>{formatBytes(totalSize)}</strong> total
+              {loading ? " • loading…" : ""}
             </div>
           </div>
 
           <div className="stack-h" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
-            <label
-              className="metaSubtle"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={useDemo}
-                onChange={(e) => toggleDemo(e.target.checked)}
-              />
-              Demo data
-            </label>
-
             <input
               className="inputField"
               placeholder="Search (name, description, type, extension)…"
@@ -149,16 +166,18 @@ export default function ManageFilesSection() {
 
             <button
               className="sectionButton"
-              title="Upload (coming soon)"
+              title={isAdmin ? "Upload" : "Admin only"}
               onClick={() => setShowUploadModal(true)}
+              disabled={!isAdmin}
             >
               Upload
             </button>
 
             <button
               className="sectionButton"
-              title="Delete selected (coming soon)"
-              disabled={disabledBecauseNoAPI || selected.size === 0}
+              title={isAdmin ? "Delete selected" : "Admin only"}
+              disabled={!isAdmin || selected.size === 0}
+              onClick={handleDeleteSelected}
             >
               Delete Selected
             </button>
@@ -198,13 +217,11 @@ export default function ManageFilesSection() {
         <div className="listStack">
           {filtered.length === 0 ? (
             <p style={{ marginTop: "0.5rem" }}>
-              {files.length === 0
-                ? "No files yet. Flip on “Demo data” to preview the layout."
-                : "No files match your search."}
+              {loading ? "Loading…" : "No files found."}
             </p>
           ) : (
-            filtered.map((f, idx) => (
-              <article key={f.id || `row-${idx}`} className="card">
+            filtered.map((f) => (
+              <article key={f.id} className="card">
                 <div
                   style={{
                     display: "grid",
@@ -232,14 +249,17 @@ export default function ManageFilesSection() {
                         {f.description}
                       </div>
                     ) : null}
+                    {typeof f.isPublic === "boolean" && (
+                      <div className="metaSubtle" style={{ marginTop: 4 }}>
+                        Visibility: {f.isPublic ? "Public" : "Private"}
+                      </div>
+                    )}
                   </div>
 
                   <div className="metaSubtle breakText">{f.type}</div>
-
                   <div style={{ textAlign: "right" }}>
                     {formatBytes(f.sizeBytes)}
                   </div>
-
                   <div
                     className="metaSubtle"
                     style={{ textAlign: "right", whiteSpace: "nowrap" }}
@@ -257,24 +277,37 @@ export default function ManageFilesSection() {
                   >
                     <button
                       className="sectionButton"
-                      disabled
-                      title="Preview (coming soon)"
+                      onClick={() => handlePreview(f.id)}
                     >
                       Preview
                     </button>
                     <button
                       className="sectionButton"
-                      disabled
-                      title="Download (coming soon)"
+                      onClick={() =>
+                        handleDownload(f.id, `${f.name}.${f.extension}`)
+                      }
                     >
                       Download
                     </button>
                     <button
                       className="sectionButton"
-                      disabled
-                      title="Delete (coming soon)"
+                      title={isAdmin ? "Delete" : "Admin only"}
+                      disabled={!isAdmin}
+                      onClick={async () => {
+                        if (!isAdmin) return;
+                        await api.delete<void>(`/api/files/${f.id}`);
+                        fetchFiles();
+                      }}
                     >
                       Delete
+                    </button>
+                    <button
+                      className="sectionButton"
+                      title={isAdmin ? "Toggle visibility" : "Admin only"}
+                      disabled={!isAdmin || typeof f.isPublic !== "boolean"}
+                      onClick={() => handleToggleVisibility(f)}
+                    >
+                      {f.isPublic ? "Make Private" : "Make Public"}
                     </button>
                   </div>
                 </div>
@@ -286,25 +319,7 @@ export default function ManageFilesSection() {
         <UploadModal
           open={showUploadModal}
           onClose={() => setShowUploadModal(false)}
-          onUploadedPlaceholder={(f) => {
-            const full = f.name.trim();
-            const dot = full.lastIndexOf(".");
-            const base = dot > 0 ? full.slice(0, dot) : full;
-            const ext = dot > 0 ? full.slice(dot + 1).toLowerCase() : "bin";
-
-            setFiles((cur) => [
-              {
-                id: `temp_${Date.now()}`,
-                name: base || "untitled",
-                description: f.description,
-                type: f.type || "application/octet-stream",
-                extension: ext,
-                sizeBytes: f.size,
-                uploadedAt: new Date().toISOString(),
-              },
-              ...cur,
-            ]);
-          }}
+          onUploaded={fetchFiles}
         />
       </section>
     </div>
@@ -312,35 +327,30 @@ export default function ManageFilesSection() {
 }
 
 /* ==============
-   Upload Modal 
+   Upload Modal
    ==============*/
 
 type UploadModalProps = {
   open: boolean;
   onClose: () => void;
-  onUploadedPlaceholder: (file: {
-    name: string;
-    size: number;
-    type: string;
-    description?: string;
-  }) => void;
+  onUploaded: () => Promise<void> | void;
 };
 
-const MAX_BYTES = 20 * 1024 * 1024; // 20MB placeholder
+const MAX_BYTES = 5 * 1024 * 1024; 
 const ALLOWED_TYPES = [
   "image/png",
   "image/jpeg",
   "application/pdf",
   "text/csv",
-]; // tweak later
+]; 
 
-function UploadModal({
-  open,
-  onClose,
-  onUploadedPlaceholder,
-}: UploadModalProps) {
+function UploadModal({ open, onClose, onUploaded }: UploadModalProps) {
+  const { role } = useAuth();
+  const isAdmin = (role || "").toLowerCase() === "admin";
+
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -355,6 +365,7 @@ function UploadModal({
     } else {
       setFile(null);
       setDescription("");
+      setIsPublic(false);
       setError("");
       setSubmitting(false);
     }
@@ -387,20 +398,23 @@ function UploadModal({
       setError(err);
       return;
     }
-    setSubmitting(true);
+    if (!isAdmin) return;
 
-    setTimeout(() => {
-      if (file) {
-        onUploadedPlaceholder({
-          name: file.name,
-          size: file.size,
-          type: file.type || "application/octet-stream",
-          description: description.trim() || undefined,
-        });
-      }
-      setSubmitting(false);
+    setSubmitting(true);
+    try {
+      const form = new FormData();
+      form.append("File", file!); 
+      if (description.trim()) form.append("Description", description.trim()); 
+      form.append("IsPublic", String(isPublic)); 
+
+      await api.uploadForm<FileMetadataDto>("/api/files", form);
+      await onUploaded();
       onClose();
-    }, 800);
+    } catch (e: any) {
+      setError(e?.title || e?.message || "Upload failed");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const onOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -457,10 +471,24 @@ function UploadModal({
             disabled={submitting}
           />
 
+          <label
+            className="metaSubtle"
+            style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+          >
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+              disabled={submitting}
+            />
+            Public
+          </label>
+
           <div className="generalErrorSlot" id="upload-error">
             {error ? <span className="errorText">{error}</span> : <span />}
           </div>
         </div>
+
         <div
           style={{
             display: "flex",
@@ -472,13 +500,12 @@ function UploadModal({
           <button
             className="sectionButton"
             onClick={handleSubmit}
-            disabled={submitting || !!validate(file)}
+            disabled={submitting || !!validate(file) || !isAdmin}
             aria-busy={submitting}
-            title="Upload"
+            title={isAdmin ? "Upload" : "Admin only"}
           >
             {submitting ? "Uploading…" : "Upload"}
           </button>
-
           <button
             className="sectionButton"
             onClick={onClose}

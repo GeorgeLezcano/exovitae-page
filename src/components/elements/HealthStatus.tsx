@@ -9,7 +9,7 @@ type HealthResponse = {
   timestamp: string;
 };
 
-const POLL_MS = 15000;
+const POLL_MS = 60000;
 const TIMEOUT_MS = 6000;
 const OVERALL_LABEL = "System";
 
