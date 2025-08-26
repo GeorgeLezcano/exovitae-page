@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, createSearchParams } from "react-router-dom";
 import { setAuthToken } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
@@ -16,9 +16,12 @@ import ManageFilesSection from "../sections/DashboardSections/ManageFilesSection
 import HealthStatus from "../elements/HealthStatus";
 import RegistrationSection from "../sections/DashboardSections/RegistrationSection";
 import UserManagementSection from "../sections/DashboardSections/UserManagementSection";
+import ResetPasswordModal from "../elements/ResetPasswordModal"; // <-- NEW
 
 export default function DashboardLayout() {
-  const { setToken, username, setUsername } = useAuth();
+  const { setToken, username, setUsername, role } = useAuth();
+  const isAdmin = (role || "").toLowerCase() === "admin";
+
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabParamRaw = (searchParams.get("tab") || "").toLowerCase();
@@ -80,6 +83,8 @@ export default function DashboardLayout() {
     }
   };
 
+  const [pwOpen, setPwOpen] = useState(false);
+
   return (
     <div className="main-layout">
       <aside className="side-bar">
@@ -112,20 +117,28 @@ export default function DashboardLayout() {
             </div>
           </div>
         </div>
-        {dashboardItemList.map((item: DashboardItem) => (
-          <button
-            key={item.name}
-            className={`sideBarItemButton ${
-              selected === item.linkTo ? "selected" : ""
-            }`}
-            onClick={() => handleSideButtonOnClick(item.linkTo)}
-            disabled={item.disabled}
-            title={item.tooltip}
-            style={{ marginBottom: "2rem" }}
-          >
-            {item.name}
-          </button>
-        ))}
+
+        {dashboardItemList
+          .filter((item: DashboardItem) =>
+            isAdmin
+              ? true
+              : item.linkTo !== DashBoardButtonRoutes.Users &&
+                item.linkTo !== DashBoardButtonRoutes.Register
+          )
+          .map((item: DashboardItem) => (
+            <button
+              key={item.name}
+              className={`sideBarItemButton ${
+                selected === item.linkTo ? "selected" : ""
+              }`}
+              onClick={() => handleSideButtonOnClick(item.linkTo)}
+              disabled={item.disabled}
+              title={item.tooltip}
+              style={{ marginBottom: "2rem" }}
+            >
+              {item.name}
+            </button>
+          ))}
       </aside>
 
       <section className="info-panel">
@@ -133,18 +146,40 @@ export default function DashboardLayout() {
           className="header"
           style={{ width: "100%", position: "relative", minHeight: 96 }}
         >
-          <button
-            className="sectionButton"
-            onClick={handleLogout}
-            aria-label="Logout"
-            style={{ position: "absolute", top: 8, left: 8, zIndex: 10 }}
+          <div
+            style={{
+              position: "absolute",
+              top: 8,
+              left: 8,
+              zIndex: 10,
+              display: "flex",
+              gap: 8,
+            }}
           >
-            Logout
-          </button>
+            <button
+              className="sectionButton"
+              onClick={handleLogout}
+              aria-label="Logout"
+              title="Logout"
+            >
+              Logout
+            </button>
+            <button
+              className="sectionButton"
+              onClick={() => setPwOpen(true)}
+              aria-label="Reset password"
+              title="Reset password"
+            >
+              Reset Password
+            </button>
+          </div>
           <HealthStatus />
         </header>
+
         <div className="details-view">{renderSection()}</div>
       </section>
+
+      <ResetPasswordModal open={pwOpen} onClose={() => setPwOpen(false)} />
     </div>
   );
 }

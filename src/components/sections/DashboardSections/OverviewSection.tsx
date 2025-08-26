@@ -1,14 +1,23 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/client";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type OverviewSectionProps = {
   username: string | null;
-  fileCount?: number | null;
-  fileBytesTotal?: number | null;
 };
 
 type UserInfo = { role: string | null };
 type Feedback = { rating: number };
+
+type FileMetadataDto = {
+  size: number;
+};
+type PagedResultDto<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
 
 function formatBytes(n: number | null | undefined) {
   if (!n || n <= 0) return "—";
@@ -23,8 +32,6 @@ function formatBytes(n: number | null | undefined) {
 
 export default function OverviewSection({
   username = "",
-  fileCount = null,
-  fileBytesTotal = null,
 }: OverviewSectionProps) {
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersTotal, setUsersTotal] = useState<number | null>(null);
@@ -34,11 +41,15 @@ export default function OverviewSection({
   const [fbTotal, setFbTotal] = useState<number | null>(null);
   const [fbAvg, setFbAvg] = useState<number | null>(null);
 
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [fileCount, setFileCount] = useState<number | null>(null);
+  const [fileBytesTotal, setFileBytesTotal] = useState<number | null>(null);
+
   useEffect(() => {
     (async () => {
       setUsersLoading(true);
       try {
-        const users = await api.get<UserInfo[]>("/api/auth/users");
+        const users = await api.get<UserInfo[]>(Endpoints.Users);
         const total = users.length;
         const admins = users.filter(
           (u) => (u.role ?? "").toLowerCase() === "admin"
@@ -56,7 +67,7 @@ export default function OverviewSection({
     (async () => {
       setFbLoading(true);
       try {
-        const feedbacks = await api.get<Feedback[]>("/api/feedback");
+        const feedbacks = await api.get<Feedback[]>(Endpoints.Feedback);
         const total = feedbacks.length;
         const sum = feedbacks.reduce((s, f) => s + (Number(f.rating) || 0), 0);
         const avg = total > 0 ? sum / total : null;
@@ -67,6 +78,40 @@ export default function OverviewSection({
         setFbAvg(null);
       } finally {
         setFbLoading(false);
+      }
+    })();
+
+    (async () => {
+      setFilesLoading(true);
+      try {
+        const pageSize = 100;
+        let page = 1;
+        let totalBytes = 0;
+        let totalCount: number | null = null;
+
+        const first = await api.get<PagedResultDto<FileMetadataDto>>(
+          `${Endpoints.Files}?page=${page}&pageSize=${pageSize}`
+        );
+        const itemsFirst = first?.items || [];
+        totalCount = first?.total ?? itemsFirst.length;
+        totalBytes += itemsFirst.reduce((s, it) => s + (it.size || 0), 0);
+
+        const totalPages = Math.ceil((totalCount || 0) / pageSize);
+        for (page = 2; page <= totalPages; page++) {
+          const res = await api.get<PagedResultDto<FileMetadataDto>>(
+            `${Endpoints.Files}?page=${page}&pageSize=${pageSize}`
+          );
+          const items = res?.items || [];
+          totalBytes += items.reduce((s, it) => s + (it.size || 0), 0);
+        }
+
+        setFileCount(totalCount ?? 0);
+        setFileBytesTotal(totalBytes);
+      } catch {
+        setFileCount(null);
+        setFileBytesTotal(null);
+      } finally {
+        setFilesLoading(false);
       }
     })();
   }, []);
@@ -82,8 +127,7 @@ export default function OverviewSection({
       </h1>
 
       <p style={{ color: "#94a3b8", marginBottom: "1.5rem", fontSize: "1rem" }}>
-        A quick snapshot of your workspace: user totals (admins highlighted) and
-        feedback health. File stats will populate once storage is connected.
+        A quick snapshot of your workspace.
       </p>
 
       <div
@@ -103,11 +147,11 @@ export default function OverviewSection({
           }}
         >
           <div style={{ fontSize: "1.6rem", fontWeight: 700 }}>
-            {fileCount == null ? "—" : fileCount}
+            {filesLoading ? <span className="spinner" /> : numOrDash(fileCount)}
           </div>
           <div style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Files</div>
           <div style={{ color: "#a8cfff", fontSize: "0.85rem", marginTop: 4 }}>
-            Total size: {formatBytes(fileBytesTotal)}
+            Total size: {filesLoading ? "…" : formatBytes(fileBytesTotal)}
           </div>
         </div>
 

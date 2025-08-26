@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../../api/client";
 import { toast } from "react-toastify";
+import { Endpoints } from "../../constants/Endpoints";
 
 type FeedbackRequest = {
   name: string;
@@ -146,7 +147,7 @@ export default function FeedBackSection() {
 
     try {
       const response = await api.post<FeedbackResponse, FeedbackRequest>(
-        "/api/feedback",
+        Endpoints.Feedback,
         { name: cleanName, message: cleanFeedback, rating: cleanRating }
       );
 

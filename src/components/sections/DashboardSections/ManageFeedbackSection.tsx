@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/client";
+import { useAuth } from "../../../auth/AuthContext";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type Feedback = {
   id: string;
   name: string;
-  datePosted: string; 
+  datePosted: string;
   message: string;
   rating: number;
 };
 
 async function fetchAllFeedback(): Promise<Feedback[]> {
-  return await api.get<Feedback[]>("/api/feedback");
+  return await api.get<Feedback[]>(Endpoints.Feedback);
 }
 
 async function deleteFeedback(id: string): Promise<void> {
-  await api.delete<void>(`/api/feedback/${id}`);
+  await api.delete<void>(`${Endpoints.Feedback}/${id}`);
 }
 
 export default function ManageFeedbackSection() {
+  const { role } = useAuth();
+  const isAdmin = (role || "").toLowerCase() === "admin";
+
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<string | null>(null);
@@ -28,6 +33,11 @@ export default function ManageFeedbackSection() {
     setError("");
     try {
       const data = await fetchAllFeedback();
+
+      data.sort(
+        (a, b) =>
+          new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime()
+      );
       setFeedbacks(data);
       setLastRefreshed(new Date().toLocaleString());
     } catch {
@@ -42,6 +52,7 @@ export default function ManageFeedbackSection() {
   }, []);
 
   const handleDelete = async (id: string) => {
+    if (!isAdmin) return;
     setError("");
     const prev = feedbacks;
     setFeedbacks((cur) => cur.filter((f) => f.id !== id));
@@ -71,7 +82,6 @@ export default function ManageFeedbackSection() {
 
   return (
     <div className="w-100 max-900">
-      {/* Header / toolbar */}
       <div className="sectionHeader">
         <div>
           <h1 style={{ margin: 0 }}>Feedback Inbox</h1>
@@ -104,38 +114,37 @@ export default function ManageFeedbackSection() {
         </div>
       ) : null}
 
-      {/* List */}
       <div className="listStack">
         {feedbacks.length === 0 ? (
           <p>No feedback available.</p>
         ) : (
           feedbacks.map((f) => (
             <article key={f.id} className="card">
-              {/* Top row: name/date + delete */}
               <header className="cardHeader">
                 <div>
                   <strong className="breakText">{f.name}</strong>
-                  <div className="metaSubtle">{f.datePosted}</div>
+                  <div className="metaSubtle">
+                    {new Date(f.datePosted).toLocaleString()}
+                  </div>
                 </div>
 
                 <button
                   className="sectionButton"
                   onClick={() => handleDelete(f.id)}
                   aria-label={`Delete feedback from ${f.name}`}
-                  title="Delete"
+                  title={isAdmin ? "Delete" : "Admin only"}
+                  disabled={!isAdmin}
                 >
                   Delete
                 </button>
               </header>
 
-              {/* Rating */}
               {f.rating ? (
                 <div style={{ marginBottom: "0.5rem", color: "#a8d9ff" }}>
                   {renderStars(f.rating)}
                 </div>
               ) : null}
 
-              {/* Message */}
               <div className="cardBody breakText">{f.message}</div>
             </article>
           ))
