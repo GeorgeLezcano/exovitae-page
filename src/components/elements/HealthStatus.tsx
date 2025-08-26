@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { api, setAuthToken } from "../../api/client";
+import { Endpoints } from "../../constants/Endpoints";
 
 type HealthResponse = {
   serverStatus: string;
@@ -91,7 +92,7 @@ export default function HealthStatus() {
 
     const started = performance.now();
     try {
-      const res = await api.get<HealthResponse>("/api/health");
+      const res = await api.get<HealthResponse>(Endpoints.Health);
       if (
         !res ||
         typeof res.serverStatus !== "string" ||

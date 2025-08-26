@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/client";
 import { useAuth } from "../../../auth/AuthContext";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type Feedback = {
   id: string;
@@ -11,11 +12,11 @@ type Feedback = {
 };
 
 async function fetchAllFeedback(): Promise<Feedback[]> {
-  return await api.get<Feedback[]>("/api/feedback");
+  return await api.get<Feedback[]>(Endpoints.Feedback);
 }
 
 async function deleteFeedback(id: string): Promise<void> {
-  await api.delete<void>(`/api/feedback/${id}`);
+  await api.delete<void>(`${Endpoints.Feedback}/${id}`);
 }
 
 export default function ManageFeedbackSection() {

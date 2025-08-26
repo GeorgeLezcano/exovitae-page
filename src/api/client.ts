@@ -1,4 +1,6 @@
-export const BASE_URL = "https://api.exovitae.net";
+import { Enviroment } from "../constants/Enviroment";
+
+export const BASE_URL = Enviroment.Production;
 
 let authToken: string | null = null;
 export function setAuthToken(token: string | null) {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/client";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type OverviewSectionProps = {
   username: string | null;
@@ -48,7 +49,7 @@ export default function OverviewSection({
     (async () => {
       setUsersLoading(true);
       try {
-        const users = await api.get<UserInfo[]>("/api/auth/users");
+        const users = await api.get<UserInfo[]>(Endpoints.Users);
         const total = users.length;
         const admins = users.filter(
           (u) => (u.role ?? "").toLowerCase() === "admin"
@@ -66,7 +67,7 @@ export default function OverviewSection({
     (async () => {
       setFbLoading(true);
       try {
-        const feedbacks = await api.get<Feedback[]>("/api/feedback");
+        const feedbacks = await api.get<Feedback[]>(Endpoints.Feedback);
         const total = feedbacks.length;
         const sum = feedbacks.reduce((s, f) => s + (Number(f.rating) || 0), 0);
         const avg = total > 0 ? sum / total : null;
@@ -89,7 +90,7 @@ export default function OverviewSection({
         let totalCount: number | null = null;
 
         const first = await api.get<PagedResultDto<FileMetadataDto>>(
-          `/api/files?page=${page}&pageSize=${pageSize}`
+          `${Endpoints.Files}?page=${page}&pageSize=${pageSize}`
         );
         const itemsFirst = first?.items || [];
         totalCount = first?.total ?? itemsFirst.length;
@@ -98,7 +99,7 @@ export default function OverviewSection({
         const totalPages = Math.ceil((totalCount || 0) / pageSize);
         for (page = 2; page <= totalPages; page++) {
           const res = await api.get<PagedResultDto<FileMetadataDto>>(
-            `/api/files?page=${page}&pageSize=${pageSize}`
+            `${Endpoints.Files}?page=${page}&pageSize=${pageSize}`
           );
           const items = res?.items || [];
           totalBytes += items.reduce((s, it) => s + (it.size || 0), 0);
@@ -126,8 +127,7 @@ export default function OverviewSection({
       </h1>
 
       <p style={{ color: "#94a3b8", marginBottom: "1.5rem", fontSize: "1rem" }}>
-        A quick snapshot of your workspace: files, user totals (admins
-        highlighted), and feedback health.
+        A quick snapshot of your workspace.
       </p>
 
       <div

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../../../api/client";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type RegisterRequest = { email: string; password: string };
 type LoginResponse = {
@@ -65,7 +66,7 @@ export default function RegistrationSection() {
 
     try {
       const res = await api.post<LoginResponse, RegisterRequest>(
-        "/api/auth/register",
+        Endpoints.Register,
         {
           email: cleanEmail,
           password,

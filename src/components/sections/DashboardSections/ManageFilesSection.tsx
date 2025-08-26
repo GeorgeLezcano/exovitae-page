@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { api } from "../../../api/client";
 import { useAuth } from "../../../auth/AuthContext";
 import {
@@ -7,6 +7,9 @@ import {
   type PagedResultDto,
   mapDtoToFileMeta,
 } from "../../../types/files";
+import UploadModal from "../../elements/UploadModal";
+import PreviewModal from "../../elements/PreviewModal";
+import { Endpoints } from "../../../constants/Endpoints";
 
 function formatBytes(n: number | undefined): string {
   if (!n || n <= 0) return "0 B";
@@ -29,13 +32,20 @@ export default function ManageFilesSection() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewName, setPreviewName] = useState<string>("");
+  const [previewMime, setPreviewMime] = useState<string | undefined>(undefined);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
   const pageSize = 100;
 
   const fetchFiles = async () => {
     setLoading(true);
     try {
       const data = await api.get<PagedResultDto<FileMetadataDto>>(
-        `/api/files?page=1&pageSize=${pageSize}`
+        `${Endpoints.Files}?page=1&pageSize=${pageSize}`
       );
       const items = (data?.items || []).map(mapDtoToFileMeta);
       setFiles(items);
@@ -88,26 +98,48 @@ export default function ManageFilesSection() {
     if (!isAdmin || selected.size === 0) return;
     const ids = Array.from(selected);
     await Promise.allSettled(
-      ids.map((id) => api.delete<void>(`/api/files/${id}`))
+      ids.map((id) => api.delete<void>(`${Endpoints.Files}/${id}`))
     );
     setSelected(new Set());
     fetchFiles();
   };
 
-  const handlePreview = async (id: string) => {
-    try {
-      const blob = await api.getBlob(`/api/files/${id}`); 
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener,noreferrer");
-      setTimeout(() => URL.revokeObjectURL(url), 30_000);
-    } catch {
-
+  const openPreview = async (id: string, suggestedName: string) => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
     }
+
+    setPreviewName(suggestedName);
+    setPreviewError(null);
+    setPreviewLoading(true);
+    setPreviewOpen(true);
+
+    try {
+      const blob = await api.getBlob(`${Endpoints.Files}/${id}`);
+      setPreviewMime(blob.type || undefined);
+      const url = URL.createObjectURL(blob);
+      setPreviewUrl(url);
+    } catch (e: any) {
+      setPreviewError(e?.title || e?.message || "Failed to load preview.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewOpen(false);
+    setPreviewName("");
+    setPreviewMime(undefined);
+    setPreviewError(null);
+    setPreviewLoading(false);
   };
 
   const handleDownload = async (id: string, suggestedName: string) => {
     try {
-      const blob = await api.getBlob(`/api/files/${id}?download=true`);
+      const blob = await api.getBlob(`${Endpoints.Files}/${id}?download=true`);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -116,9 +148,7 @@ export default function ManageFilesSection() {
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
-    } catch {
-
-    }
+    } catch {}
   };
 
   const handleToggleVisibility = async (f: FileMeta) => {
@@ -126,14 +156,12 @@ export default function ManageFilesSection() {
     try {
       const newVal = !f.isPublic;
       await api.patch<void, undefined>(
-        `/api/files/${f.id}/visibility/${newVal}`
+        `${Endpoints.Files}/${f.id}/visibility/${newVal}`
       );
       setFiles((cur) =>
         cur.map((x) => (x.id === f.id ? { ...x, isPublic: newVal } : x))
       );
-    } catch {
-  
-    }
+    } catch {}
   };
 
   return (
@@ -158,7 +186,7 @@ export default function ManageFilesSection() {
           <div className="stack-h" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
             <input
               className="inputField"
-              placeholder="Search (name, description, type, extension)…"
+              placeholder="Search Files"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ maxWidth: 320 }}
@@ -277,7 +305,10 @@ export default function ManageFilesSection() {
                   >
                     <button
                       className="sectionButton"
-                      onClick={() => handlePreview(f.id)}
+                      onClick={() =>
+                        openPreview(f.id, `${f.name}.${f.extension}`)
+                      }
+                      title="Preview inline"
                     >
                       Preview
                     </button>
@@ -295,7 +326,7 @@ export default function ManageFilesSection() {
                       disabled={!isAdmin}
                       onClick={async () => {
                         if (!isAdmin) return;
-                        await api.delete<void>(`/api/files/${f.id}`);
+                        await api.delete<void>(`${Endpoints.Files}/${f.id}`);
                         fetchFiles();
                       }}
                     >
@@ -321,201 +352,34 @@ export default function ManageFilesSection() {
           onClose={() => setShowUploadModal(false)}
           onUploaded={fetchFiles}
         />
+
+        <PreviewModal
+          open={previewOpen}
+          fileName={previewName}
+          mimeType={previewMime}
+          objectUrl={previewUrl}
+          loading={previewLoading}
+          errorText={previewError}
+          onClose={closePreview}
+          onDownload={
+            previewUrl
+              ? () => {
+                  const a = document.createElement("a");
+                  a.href = previewUrl;
+                  a.download = previewName || "download";
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                }
+              : undefined
+          }
+          onOpenNewTab={
+            previewUrl
+              ? () => window.open(previewUrl, "_blank", "noopener,noreferrer")
+              : undefined
+          }
+        />
       </section>
-    </div>
-  );
-}
-
-/* ==============
-   Upload Modal
-   ==============*/
-
-type UploadModalProps = {
-  open: boolean;
-  onClose: () => void;
-  onUploaded: () => Promise<void> | void;
-};
-
-const MAX_BYTES = 5 * 1024 * 1024; 
-const ALLOWED_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "application/pdf",
-  "text/csv",
-]; 
-
-function UploadModal({ open, onClose, onUploaded }: UploadModalProps) {
-  const { role } = useAuth();
-  const isAdmin = (role || "").toLowerCase() === "admin";
-
-  const [file, setFile] = useState<File | null>(null);
-  const [description, setDescription] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => fileInputRef.current?.focus(), 0);
-      const onKey = (e: KeyboardEvent) =>
-        e.key === "Escape" && !submitting && onClose();
-      window.addEventListener("keydown", onKey);
-      return () => window.removeEventListener("keydown", onKey);
-    } else {
-      setFile(null);
-      setDescription("");
-      setIsPublic(false);
-      setError("");
-      setSubmitting(false);
-    }
-  }, [open, onClose, submitting]);
-
-  if (!open) return null;
-
-  const validate = (f: File | null) => {
-    if (!f) return "Please choose a file.";
-    if (f.size > MAX_BYTES)
-      return `File too large (max ${Math.round(
-        MAX_BYTES / (1024 * 1024)
-      )} MB).`;
-    if (!ALLOWED_TYPES.includes(f.type))
-      return `Unsupported type: ${f.type || "unknown"}.`;
-    return "";
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError("");
-    const f = e.target.files?.[0] ?? null;
-    setFile(f);
-    const err = validate(f);
-    if (err) setError(err);
-  };
-
-  const handleSubmit = async () => {
-    const err = validate(file);
-    if (err) {
-      setError(err);
-      return;
-    }
-    if (!isAdmin) return;
-
-    setSubmitting(true);
-    try {
-      const form = new FormData();
-      form.append("File", file!); 
-      if (description.trim()) form.append("Description", description.trim()); 
-      form.append("IsPublic", String(isPublic)); 
-
-      await api.uploadForm<FileMetadataDto>("/api/files", form);
-      await onUploaded();
-      onClose();
-    } catch (e: any) {
-      setError(e?.title || e?.message || "Upload failed");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const onOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && !submitting) onClose();
-  };
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="upload-title"
-      onClick={onOverlayClick}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        padding: "1rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.65)",
-        backdropFilter: "blur(2px)",
-      }}
-    >
-      <div
-        className="card"
-        style={{
-          width: "100%",
-          maxWidth: 520,
-          backgroundColor: "rgba(17, 24, 39, 0.96)",
-          borderColor: "#2196f3",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="cardHeader">
-          <strong id="upload-title">Upload File</strong>
-        </div>
-
-        <div className="stack-v" style={{ gap: "0.75rem" }}>
-          <input
-            ref={fileInputRef}
-            className="inputField"
-            type="file"
-            onChange={handleFileChange}
-            disabled={submitting}
-            aria-describedby="upload-error"
-          />
-
-          <input
-            className="inputField"
-            placeholder="Description (optional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            disabled={submitting}
-          />
-
-          <label
-            className="metaSubtle"
-            style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-          >
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              disabled={submitting}
-            />
-            Public
-          </label>
-
-          <div className="generalErrorSlot" id="upload-error">
-            {error ? <span className="errorText">{error}</span> : <span />}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: "0.5rem",
-            marginTop: "0.75rem",
-          }}
-        >
-          <button
-            className="sectionButton"
-            onClick={handleSubmit}
-            disabled={submitting || !!validate(file) || !isAdmin}
-            aria-busy={submitting}
-            title={isAdmin ? "Upload" : "Admin only"}
-          >
-            {submitting ? "Uploading…" : "Upload"}
-          </button>
-          <button
-            className="sectionButton"
-            onClick={onClose}
-            disabled={submitting}
-            title="Close"
-          >
-            Close
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
