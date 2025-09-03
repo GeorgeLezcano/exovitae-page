@@ -123,7 +123,11 @@ export default function OverviewSection({
   return (
     <div style={{ width: "100%", maxWidth: 900, margin: "0 auto" }}>
       <h1 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>
-        Welcome {username}
+        Welcome{" "}
+        {username
+          ? username.split(".")[0].charAt(0).toUpperCase() +
+            username.split(".")[0].slice(1)
+          : ""}
       </h1>
 
       <p style={{ color: "#94a3b8", marginBottom: "1.5rem", fontSize: "1rem" }}>
