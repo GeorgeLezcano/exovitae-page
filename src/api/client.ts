@@ -1,6 +1,6 @@
-import { Enviroment } from "../constants/Enviroment";
+import { Environment } from "../constants/Enviroment";
 
-export const BASE_URL = Enviroment.Production;
+export const BASE_URL = Environment.Production;
 
 let authToken: string | null = null;
 export function setAuthToken(token: string | null) {

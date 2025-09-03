@@ -112,7 +112,8 @@ export default function DashboardLayout() {
               style={{ fontSize: "1rem", fontWeight: "bold", color: "#fff" }}
             >
               {username
-                ? username.charAt(0).toUpperCase() + username.slice(1)
+                ? username.split(".")[0].charAt(0).toUpperCase() +
+                  username.split(".")[0].slice(1)
                 : ""}
             </div>
           </div>
