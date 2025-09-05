@@ -5,11 +5,7 @@ import { useAuth } from "../../../auth/AuthContext";
 import { PageRoutes } from "../../../constants/PageRoutes";
 import { Endpoints } from "../../../constants/Endpoints";
 
-type LoginRequest = {
-  email: string;
-  password: string;
-};
-
+type LoginRequest = { email: string; password: string };
 type LoginResponse = {
   token: string | null;
   username: string | null;
@@ -63,13 +59,10 @@ export default function LoginSection() {
     }
 
     try {
-      const res = await api.post<LoginResponse, LoginRequest>(
-        Endpoints.Login,
-        {
-          email: cleanEmail,
-          password,
-        }
-      );
+      const res = await api.post<LoginResponse, LoginRequest>(Endpoints.Login, {
+        email: cleanEmail,
+        password,
+      });
 
       if (!res.token) {
         setGeneralError("Login succeeded but no token was returned.");
@@ -109,7 +102,7 @@ export default function LoginSection() {
   };
 
   return (
-    <div className="sectionShell">
+    <div className="sectionShell flushTop">
       <section className="sectionCard">
         <h1 className="pageTitle">Login</h1>
         <div className="accentDivider" />
