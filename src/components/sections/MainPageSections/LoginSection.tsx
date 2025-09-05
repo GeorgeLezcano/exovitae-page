@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../api/client";
-import { useAuth } from "../../auth/AuthContext";
-import { PageRoutes } from "../../constants/PageRoutes";
-import { Endpoints } from "../../constants/Endpoints";
+import { api } from "../../../api/client";
+import { useAuth } from "../../../auth/AuthContext";
+import { PageRoutes } from "../../../constants/PageRoutes";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type LoginRequest = {
   email: string;

@@ -7,14 +7,14 @@ import { Logo } from "../elements/Logo";
 import { SideBar } from "../elements/SideBar";
 import { SideBarItem } from "../elements/SideBarItem";
 import { SideButtonRoutes } from "../../constants/SideButtonRoutes";
-import GameOverviewSection from "../sections/GameOverviewSection";
-import FeaturesSection from "../sections/FeaturesSection";
-import MediaSection from "../sections/MediaSection";
-import FAQSection from "../sections/FAQSection";
-import FeedBackSection from "../sections/FeedBackSection";
-import AboutSection from "../sections/AboutSection";
+import GameOverviewSection from "../sections/MainPageSections/GameOverviewSection";
+import FeaturesSection from "../sections/MainPageSections/FeaturesSection";
+import MediaSection from "../sections/MainPageSections/MediaSection";
+import FAQSection from "../sections/MainPageSections/FAQSection";
+import FeedBackSection from "../sections/MainPageSections/FeedBackSection";
+import AboutSection from "../sections/MainPageSections/AboutSection";
 import { AnimatedHeader } from "../elements/AnimatedHeader";
-import LoginSection from "../sections/LoginSection";
+import LoginSection from "../sections/MainPageSections/LoginSection";
 
 export function MainLayout() {
   const [searchParams, setSearchParams] = useSearchParams();

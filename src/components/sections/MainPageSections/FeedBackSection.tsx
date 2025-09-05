@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { api } from "../../api/client";
+import { api } from "../../../api/client";
 import { toast } from "react-toastify";
-import { Endpoints } from "../../constants/Endpoints";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type FeedbackRequest = {
   name: string;
