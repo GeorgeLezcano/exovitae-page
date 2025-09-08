@@ -1,22 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Endpoints } from "../../../constants/Endpoints";
 import { api, BASE_URL } from "../../../api/client";
-
-type FileMetadataDto = {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  description?: string | null;
-  uploadTime: string;
-  isPublic: boolean;
-};
-type PagedResultDto<T> = {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-};
+import type { FileMetadataDto, PagedResultDto } from "../../../types/files";
 
 const fileSrc = (id: string, bust = 0) =>
   `${BASE_URL}${Endpoints.Files}/${id}${bust ? `?v=${bust}` : ""}`;

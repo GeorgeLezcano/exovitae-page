@@ -190,6 +190,30 @@ export function AnimatedHeader({
       });
     };
 
+    const getCircleTexture = (() => {
+      let tex: THREE.Texture | null = null;
+      return () => {
+        if (tex) return tex;
+        const size = 64;
+        const c = document.createElement("canvas");
+        c.width = c.height = size;
+        const g = c.getContext("2d")!;
+        const r = size / 2;
+
+        g.clearRect(0, 0, size, size);
+        g.fillStyle = "rgba(255,255,255,1)";
+        g.beginPath();
+        g.arc(r, r, r, 0, Math.PI * 2);
+        g.fill();
+
+        tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.minFilter = THREE.LinearMipMapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        return tex;
+      };
+    })();
+
     // Parallax Starfield
     const makeStars = (
       count: number,
@@ -205,7 +229,17 @@ export function AnimatedHeader({
         pos[i * 3 + 2] = THREE.MathUtils.randFloatSpread(spread);
       }
       geom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      const mat = new THREE.PointsMaterial({ size, transparent: true, color });
+
+      const mat = new THREE.PointsMaterial({
+        size,
+        color,
+        transparent: true,
+        map: getCircleTexture(),
+        alphaTest: 0.5,
+        depthWrite: true,
+        blending: THREE.NormalBlending,
+      });
+
       return new THREE.Points(geom, mat);
     };
 

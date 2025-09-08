@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { sideBarItemList } from "../../constants/SideBarItemList";
 import "../../styles/main-layout.css";
 import { InfoView } from "../elements/InfoView";
-import { Logo } from "../elements/Logo";
+import { Logo } from "../common/Logo";
 import { SideBar } from "../elements/SideBar";
 import { SideBarItem } from "../elements/SideBarItem";
 import { SideButtonRoutes } from "../../constants/SideButtonRoutes";
