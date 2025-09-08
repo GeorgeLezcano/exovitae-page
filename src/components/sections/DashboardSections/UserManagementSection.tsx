@@ -2,25 +2,11 @@ import { useEffect, useState } from "react";
 import { api } from "../../../api/client";
 import AdminResetPasswordModal from "../../elements/AdminResetPasswordModal";
 import { Endpoints } from "../../../constants/Endpoints";
-
-type UserInfo = {
-  id?: string | null;
-  username: string | null;
-  email: string | null;
-  role: string | null;
-  enabled: boolean;
-};
-
-type SetRoleForm = {
-  email: string;
-  role: "Admin" | "User";
-  replaceExisting?: boolean;
-};
-
-type SetUserStatusForm = {
-  email: string;
-  enabled: boolean;
-};
+import type {
+  SetRoleForm,
+  SetUserStatusForm,
+  UserInfo,
+} from "../../../types/login";
 
 async function fetchUsers(): Promise<UserInfo[]> {
   return await api.get<UserInfo[]>(Endpoints.Users);

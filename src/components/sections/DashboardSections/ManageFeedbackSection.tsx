@@ -2,17 +2,10 @@ import { useEffect, useState } from "react";
 import { api } from "../../../api/client";
 import { useAuth } from "../../../auth/AuthContext";
 import { Endpoints } from "../../../constants/Endpoints";
+import type { FeedbackResponse } from "../../../types/feedback";
 
-type Feedback = {
-  id: string;
-  name: string;
-  datePosted: string;
-  message: string;
-  rating: number;
-};
-
-async function fetchAllFeedback(): Promise<Feedback[]> {
-  return await api.get<Feedback[]>(Endpoints.Feedback);
+async function fetchAllFeedback(): Promise<FeedbackResponse[]> {
+  return await api.get<FeedbackResponse[]>(Endpoints.Feedback);
 }
 
 async function deleteFeedback(id: string): Promise<void> {
@@ -23,7 +16,7 @@ export default function ManageFeedbackSection() {
   const { role } = useAuth();
   const isAdmin = (role || "").toLowerCase() === "admin";
 
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [feedbacks, setFeedbacks] = useState<FeedbackResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<string | null>(null);
   const [error, setError] = useState<string>("");

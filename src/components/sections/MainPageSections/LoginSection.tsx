@@ -1,20 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../api/client";
-import { useAuth } from "../../auth/AuthContext";
-import { PageRoutes } from "../../constants/PageRoutes";
-import { Endpoints } from "../../constants/Endpoints";
-
-type LoginRequest = {
-  email: string;
-  password: string;
-};
-
-type LoginResponse = {
-  token: string | null;
-  username: string | null;
-  role: string | null;
-};
+import { api } from "../../../api/client";
+import { useAuth } from "../../../auth/AuthContext";
+import { PageRoutes } from "../../../constants/PageRoutes";
+import { Endpoints } from "../../../constants/Endpoints";
+import type { LoginRequest, LoginResponse } from "../../../types/login";
 
 const EmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MaxAllowedCharacters = 64;
@@ -63,13 +53,10 @@ export default function LoginSection() {
     }
 
     try {
-      const res = await api.post<LoginResponse, LoginRequest>(
-        Endpoints.Login,
-        {
-          email: cleanEmail,
-          password,
-        }
-      );
+      const res = await api.post<LoginResponse, LoginRequest>(Endpoints.Login, {
+        email: cleanEmail,
+        password,
+      });
 
       if (!res.token) {
         setGeneralError("Login succeeded but no token was returned.");
@@ -109,9 +96,10 @@ export default function LoginSection() {
   };
 
   return (
-    <div className="sectionShell">
+    <div className="sectionShell flushTop">
       <section className="sectionCard">
         <h1 className="pageTitle">Login</h1>
+        <p className="pageSubtitle">No public accounts yet, stay tuned</p>
         <div className="accentDivider" />
 
         <div className="formColumn formColumnWide">

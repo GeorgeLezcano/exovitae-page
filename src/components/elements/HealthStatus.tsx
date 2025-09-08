@@ -8,6 +8,7 @@ type HealthResponse = {
   databaseStatus: string;
   minioStatus: string;
   timestamp: string;
+  gameServerStatus?: string;
 };
 
 const POLL_MS = 60000;
@@ -15,12 +16,37 @@ const TIMEOUT_MS = 6000;
 const OVERALL_LABEL = "System";
 
 function isHealthy(s?: string) {
-  return (s ?? "").toLowerCase().includes("healthy");
+  if (typeof s !== "string") return null;
+  return s.toLowerCase().includes("healthy");
 }
 
 function colorForHealthy(healthy: boolean | null) {
   if (healthy === null) return "#94a3b8";
   return healthy ? "#16a34a" : "#dc2626";
+}
+
+type GameServerLabel = "Healthy" | "Unhealthy" | "Offline" | null;
+
+function parseGameServerStatus(s?: string): GameServerLabel {
+  if (typeof s !== "string" || !s.trim()) return null;
+  const v = s.trim().toLowerCase();
+  if (v.includes("offline")) return "Offline";
+  if (v.includes("healthy")) return "Healthy";
+  if (v.includes("unhealthy") || v.includes("down")) return "Unhealthy";
+  return null;
+}
+
+function colorForGameServer(label: GameServerLabel) {
+  switch (label) {
+    case "Healthy":
+      return "#16a34a";
+    case "Unhealthy":
+      return "#dc2626";
+    case "Offline":
+      return "#f59e0b";
+    default:
+      return "#94a3b8";
+  }
 }
 
 function Row({ name, healthy }: { name: string; healthy: boolean | null }) {
@@ -43,7 +69,33 @@ function Row({ name, healthy }: { name: string; healthy: boolean | null }) {
           whiteSpace: "nowrap",
         }}
       >
-        {healthy === null ? "—" : healthy ? "Healthy" : "Unhealthy"}
+        {healthy === null ? "-" : healthy ? "Healthy" : "Unhealthy"}
+      </span>
+    </div>
+  );
+}
+
+function GameRow({ name, label }: { name: string; label: GameServerLabel }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        fontSize: 20,
+        lineHeight: 1.2,
+      }}
+    >
+      <span style={{ color: "#cbd5e1", whiteSpace: "nowrap" }}>{name}:</span>
+      <span
+        style={{
+          color: colorForGameServer(label),
+          fontWeight: 700,
+          letterSpacing: 0.2,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label ?? "-"}
       </span>
     </div>
   );
@@ -65,12 +117,15 @@ export default function HealthStatus() {
     const db = data ? isHealthy(data.databaseStatus) : null;
     const minio = data ? isHealthy(data.minioStatus) : null;
 
+    const gameServerLabel: GameServerLabel = data
+      ? parseGameServerStatus(data.gameServerStatus)
+      : null;
+
     const overallHealthy =
       server !== null && db !== null && minio !== null
         ? server && db && minio
-        : null;
-
-    return { server, db, minio, overallHealthy };
+        : null
+    return { server, db, minio, gameServerLabel, overallHealthy };
   }, [data]);
 
   const fetchOnce = async () => {
@@ -92,18 +147,21 @@ export default function HealthStatus() {
 
     const started = performance.now();
     try {
-      const res = await api.get<HealthResponse>(Endpoints.Health);
+      const res = await api.get<Partial<HealthResponse>>(Endpoints.Health);
       if (
         !res ||
         typeof res.serverStatus !== "string" ||
         typeof res.databaseStatus !== "string" ||
         typeof res.minioStatus !== "string" ||
-        typeof res.timestamp !== "string"
+        typeof res.timestamp !== "string" ||
+        ("gameServerStatus" in res &&
+          res.gameServerStatus !== undefined &&
+          typeof res.gameServerStatus !== "string")
       ) {
         throw new Error("Unexpected health payload");
       }
 
-      setData(res);
+      setData(res as HealthResponse);
       setLatencyMs(Math.round(performance.now() - started));
       setError("");
     } catch (e: any) {
@@ -113,7 +171,10 @@ export default function HealthStatus() {
           typeof maybe.serverStatus === "string" &&
           typeof maybe.databaseStatus === "string" &&
           typeof maybe.minioStatus === "string" &&
-          typeof maybe.timestamp === "string"
+          typeof maybe.timestamp === "string" &&
+          (!("gameServerStatus" in maybe) ||
+            maybe.gameServerStatus === undefined ||
+            typeof maybe.gameServerStatus === "string")
         ) {
           setData(maybe as HealthResponse);
           setLatencyMs(Math.round(performance.now() - started));
@@ -237,6 +298,7 @@ export default function HealthStatus() {
         <Row name="API" healthy={derived.server} />
         <Row name="Database" healthy={derived.db} />
         <Row name="MinIO" healthy={derived.minio} />
+        <GameRow name="Game Server" label={derived.gameServerLabel} />
 
         <div style={{ color: "#94a3b8", fontSize: 14 }}>
           {data?.timestamp ? new Date(data.timestamp).toLocaleString() : "—"}

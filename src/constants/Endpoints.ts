@@ -7,7 +7,8 @@ export const Endpoints = {
   Register: "/api/auth/register",
   SetRole: "/api/auth/set-role",
   UserEnabled: "/api/auth/set-enabled",
-  Login: "/api/auth/login"
+  Login: "/api/auth/login",
+  PublicFiles: "/api/files/public",
 } as const;
 
 export type Endpoints =

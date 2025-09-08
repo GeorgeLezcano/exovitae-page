@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { Environment } from "../../constants/Enviroment";
 
 type AnimatedHeaderProps = {
   className?: string;
@@ -101,11 +102,18 @@ const CONFIG = {
   },
   lights: {
     ambient: { color: 0x6699cc, intensity: 0.6 },
-    directional: { color: 0xffffff, intensity: 0.8, position: new THREE.Vector3(5, 10, 7) },
+    directional: {
+      color: 0xffffff,
+      intensity: 0.8,
+      position: new THREE.Vector3(5, 10, 7),
+    },
   },
 } as const;
 
-export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHeaderProps) {
+export function AnimatedHeader({
+  className = "",
+  height = "60vh",
+}: AnimatedHeaderProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -129,24 +137,44 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
     sceneRef.current = scene;
 
     const { w, h } = getSize();
-    const camera = new THREE.PerspectiveCamera(CONFIG.camera.fov, w / h, CONFIG.camera.near, CONFIG.camera.far);
-    camera.position.set(CONFIG.camera.basePos.x, CONFIG.camera.basePos.y, CONFIG.camera.basePos.z);
+    const camera = new THREE.PerspectiveCamera(
+      CONFIG.camera.fov,
+      w / h,
+      CONFIG.camera.near,
+      CONFIG.camera.far
+    );
+    camera.position.set(
+      CONFIG.camera.basePos.x,
+      CONFIG.camera.basePos.y,
+      CONFIG.camera.basePos.z
+    );
     cameraRef.current = camera;
 
     // Renderer
     let renderer = rendererRef.current;
     if (!renderer) {
-      renderer = new THREE.WebGLRenderer({ antialias: CONFIG.renderer.antialias, alpha: true });
+      renderer = new THREE.WebGLRenderer({
+        antialias: CONFIG.renderer.antialias,
+        alpha: true,
+      });
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       rendererRef.current = renderer;
       mount.appendChild(renderer.domElement);
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, CONFIG.renderer.maxPixelRatio));
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio || 1, CONFIG.renderer.maxPixelRatio)
+    );
     renderer.setSize(w, h);
 
     // Lights
-    const amb = new THREE.AmbientLight(CONFIG.lights.ambient.color, CONFIG.lights.ambient.intensity);
-    const dir = new THREE.DirectionalLight(CONFIG.lights.directional.color, CONFIG.lights.directional.intensity);
+    const amb = new THREE.AmbientLight(
+      CONFIG.lights.ambient.color,
+      CONFIG.lights.ambient.intensity
+    );
+    const dir = new THREE.DirectionalLight(
+      CONFIG.lights.directional.color,
+      CONFIG.lights.directional.intensity
+    );
     dir.position.copy(CONFIG.lights.directional.position);
     scene.add(amb, dir);
 
@@ -155,14 +183,44 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
       obj.traverse((child: any) => {
         child.geometry?.dispose?.();
         if (child.material) {
-          if (Array.isArray(child.material)) child.material.forEach((m: any) => m.dispose?.());
+          if (Array.isArray(child.material))
+            child.material.forEach((m: any) => m.dispose?.());
           else child.material.dispose?.();
         }
       });
     };
 
+    const getCircleTexture = (() => {
+      let tex: THREE.Texture | null = null;
+      return () => {
+        if (tex) return tex;
+        const size = 64;
+        const c = document.createElement("canvas");
+        c.width = c.height = size;
+        const g = c.getContext("2d")!;
+        const r = size / 2;
+
+        g.clearRect(0, 0, size, size);
+        g.fillStyle = "rgba(255,255,255,1)";
+        g.beginPath();
+        g.arc(r, r, r, 0, Math.PI * 2);
+        g.fill();
+
+        tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.minFilter = THREE.LinearMipMapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        return tex;
+      };
+    })();
+
     // Parallax Starfield
-    const makeStars = (count: number, spread: number, size: number, color: number) => {
+    const makeStars = (
+      count: number,
+      spread: number,
+      size: number,
+      color: number
+    ) => {
       const geom = new THREE.BufferGeometry();
       const pos = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) {
@@ -171,7 +229,17 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
         pos[i * 3 + 2] = THREE.MathUtils.randFloatSpread(spread);
       }
       geom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      const mat = new THREE.PointsMaterial({ size, transparent: true, color });
+
+      const mat = new THREE.PointsMaterial({
+        size,
+        color,
+        transparent: true,
+        map: getCircleTexture(),
+        alphaTest: 0.5,
+        depthWrite: true,
+        blending: THREE.NormalBlending,
+      });
+
       return new THREE.Points(geom, mat);
     };
 
@@ -209,8 +277,17 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
       scale: dnaScale,
     } = CONFIG.dna;
 
-    const sphereGeom = new THREE.SphereGeometry(sphereRadius, sphereSegments, sphereSegments);
-    const rungGeom = new THREE.CylinderGeometry(rungRadius, rungRadius, rungLength, rungSegments);
+    const sphereGeom = new THREE.SphereGeometry(
+      sphereRadius,
+      sphereSegments,
+      sphereSegments
+    );
+    const rungGeom = new THREE.CylinderGeometry(
+      rungRadius,
+      rungRadius,
+      rungLength,
+      rungSegments
+    );
     const brightBlue = new THREE.MeshStandardMaterial({
       color: 0x00bfff,
       metalness: 0.8,
@@ -220,8 +297,16 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
     });
 
     const totalPoints = turns * pointsPerTurn;
-    const spheres = new THREE.InstancedMesh(sphereGeom, brightBlue, totalPoints * 2);
-    const rungs = new THREE.InstancedMesh(rungGeom, brightBlue, Math.floor(totalPoints / rungEvery));
+    const spheres = new THREE.InstancedMesh(
+      sphereGeom,
+      brightBlue,
+      totalPoints * 2
+    );
+    const rungs = new THREE.InstancedMesh(
+      rungGeom,
+      brightBlue,
+      Math.floor(totalPoints / rungEvery)
+    );
     spheres.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     rungs.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
@@ -283,7 +368,11 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
     const bh = CONFIG.blackHole;
     const blackHoleGroup = new THREE.Group();
     const core = new THREE.Mesh(
-      new THREE.SphereGeometry(bh.core.radius, bh.core.widthSegments, bh.core.heightSegments),
+      new THREE.SphereGeometry(
+        bh.core.radius,
+        bh.core.widthSegments,
+        bh.core.heightSegments
+      ),
       new THREE.MeshStandardMaterial({
         color: bh.core.color,
         roughness: bh.core.roughness,
@@ -325,23 +414,38 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
 
       // DNA + black hole rotation + subtle wobble
       dnaGroup.rotation.y += CONFIG.dna.rotYSpeed * dt;
-      dnaGroup.rotation.x = Math.sin(t * CONFIG.dna.wobbleXSpeed) * CONFIG.dna.wobbleXAmp;
+      dnaGroup.rotation.x =
+        Math.sin(t * CONFIG.dna.wobbleXSpeed) * CONFIG.dna.wobbleXAmp;
 
       blackHoleGroup.rotation.y -= CONFIG.blackHole.rotYSpeed * dt;
-      blackHoleGroup.rotation.x = Math.cos(t * CONFIG.blackHole.wobbleXSpeed) * CONFIG.blackHole.wobbleXAmp;
+      blackHoleGroup.rotation.x =
+        Math.cos(t * CONFIG.blackHole.wobbleXSpeed) *
+        CONFIG.blackHole.wobbleXAmp;
 
       // Parallax stars
       starsGroup.rotation.y += CONFIG.stars.far.rotYSpeed * dt;
-      farStars.position.x = Math.sin(t * CONFIG.stars.far.driftXSpeed) * CONFIG.stars.far.driftXAmp;
-      farStars.position.y = Math.cos(t * CONFIG.stars.far.driftYSpeed) * CONFIG.stars.far.driftYAmp;
+      farStars.position.x =
+        Math.sin(t * CONFIG.stars.far.driftXSpeed) * CONFIG.stars.far.driftXAmp;
+      farStars.position.y =
+        Math.cos(t * CONFIG.stars.far.driftYSpeed) * CONFIG.stars.far.driftYAmp;
 
       nearStars.rotation.y += CONFIG.stars.near.rotYSpeed * dt;
-      nearStars.position.x = Math.sin(t * CONFIG.stars.near.driftXSpeed + CONFIG.stars.near.phaseOffset) * CONFIG.stars.near.driftXAmp;
-      nearStars.position.y = Math.cos(t * CONFIG.stars.near.driftYSpeed + CONFIG.stars.near.phaseOffset * 0.666) * CONFIG.stars.near.driftYAmp;
+      nearStars.position.x =
+        Math.sin(
+          t * CONFIG.stars.near.driftXSpeed + CONFIG.stars.near.phaseOffset
+        ) * CONFIG.stars.near.driftXAmp;
+      nearStars.position.y =
+        Math.cos(
+          t * CONFIG.stars.near.driftYSpeed +
+            CONFIG.stars.near.phaseOffset * 0.666
+        ) * CONFIG.stars.near.driftYAmp;
 
       // Camera bob
-      camera.position.x = Math.sin(t * CONFIG.camera.bobXSpeed) * CONFIG.camera.bobXAmp;
-      camera.position.y = CONFIG.camera.basePos.y + Math.sin(t * CONFIG.camera.bobYSpeed) * CONFIG.camera.bobYAmp;
+      camera.position.x =
+        Math.sin(t * CONFIG.camera.bobXSpeed) * CONFIG.camera.bobXAmp;
+      camera.position.y =
+        CONFIG.camera.basePos.y +
+        Math.sin(t * CONFIG.camera.bobYSpeed) * CONFIG.camera.bobYAmp;
       camera.lookAt(0, 0, 0);
 
       renderer!.render(scene, camera);
@@ -373,7 +477,10 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
       scene.remove(starsGroup, dnaGroup, blackHoleGroup);
 
       rendererRef.current?.dispose();
-      if (rendererRef.current && mount.contains(rendererRef.current.domElement)) {
+      if (
+        rendererRef.current &&
+        mount.contains(rendererRef.current.domElement)
+      ) {
         mount.removeChild(rendererRef.current.domElement);
       }
       rendererRef.current = null;
@@ -383,7 +490,10 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
   }, [height]);
 
   return (
-    <header className={className} style={{ position: "relative", width: "100%", height }}>
+    <header
+      className={className}
+      style={{ position: "relative", width: "100%", height }}
+    >
       {/* 3D animation layer */}
       <div
         ref={mountRef}
@@ -395,20 +505,29 @@ export function AnimatedHeader({ className = "", height = "60vh" }: AnimatedHead
         }}
       />
 
-      {/* UI overlay layer (keep for future buttons / headings) */}
+      {/* UI overlay layer */}
       <div
         style={{
           position: "relative",
           zIndex: 1,
           height: "100%",
           display: "flex",
-          justifyContent: "center",
+          justifyContent: "start",
           alignItems: "center",
           pointerEvents: "auto",
+          paddingLeft: "10%",
         }}
       >
-        {/* Overlay UI goes here */}
-        {/* <button>Click me</button> */}
+        {/* Overlay UI here */}
+        <a
+          href={`${Environment.GameServerDev}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <button type="button" className="animatedButton playNow">
+            ▶ Play Game
+          </button>
+        </a>
       </div>
     </header>
   );

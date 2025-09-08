@@ -1,18 +1,7 @@
 import { useState } from "react";
 import { api } from "../../../api/client";
 import { Endpoints } from "../../../constants/Endpoints";
-
-type RegisterRequest = {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-};
-type LoginResponse = {
-  token: string | null;
-  username: string | null;
-  role: string | null;
-};
+import type { LoginResponse, RegisterRequest } from "../../../types/login";
 
 const EmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MaxAllowedCharacters = 64;
