@@ -31,3 +31,12 @@ export type SetUserStatusForm = {
   email: string;
   enabled: boolean;
 };
+
+export type AuthContextType = {
+  token: string | null;
+  setToken: (t: string | null) => void;
+  username: string | null;
+  setUsername: (u: string | null) => void;
+  role: string | null;
+  setRole: (r: string | null) => void;
+};

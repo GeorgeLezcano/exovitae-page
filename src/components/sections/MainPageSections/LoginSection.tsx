@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "../../../api/client";
 import { useAuth } from "../../../auth/AuthContext";
 import { PageRoutes } from "../../../constants/PageRoutes";
 import { Endpoints } from "../../../constants/Endpoints";
 import type { LoginRequest, LoginResponse } from "../../../types/login";
+import { AppRoles } from "../../../constants/AppRoles";
 
 const EmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MaxAllowedCharacters = 64;
 
 export default function LoginSection() {
   const nav = useNavigate();
+  const location = useLocation();
   const { setToken, setUsername, setRole } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -67,7 +69,16 @@ export default function LoginSection() {
       setUsername(res.username ?? null);
       setRole(res.role ?? null);
 
-      nav(PageRoutes.Dashboard, { replace: true });
+      const role = res.role ?? "";
+      const from = (location.state as { from?: string } | null)?.from;
+
+      if (from) {
+        nav(from, { replace: true });
+      } else if (role === AppRoles.Admin) {
+        nav(PageRoutes.AdminDashboard, { replace: true });
+      } else {
+        nav(PageRoutes.UserPage, { replace: true });
+      }
     } catch (err: unknown) {
       const anyErr = err as { response?: { data?: any; status?: number } };
 

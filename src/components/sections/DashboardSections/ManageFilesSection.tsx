@@ -10,6 +10,7 @@ import {
 import UploadModal from "../../elements/UploadModal";
 import PreviewModal from "../../elements/PreviewModal";
 import { Endpoints } from "../../../constants/Endpoints";
+import { AppRoles } from "../../../constants/AppRoles";
 
 function formatBytes(n: number | undefined): string {
   if (!n || n <= 0) return "0 B";
@@ -24,7 +25,7 @@ function formatBytes(n: number | undefined): string {
 
 export default function ManageFilesSection() {
   const { role } = useAuth();
-  const isAdmin = (role || "").toLowerCase() === "admin";
+  const isAdmin = (role || "") === AppRoles.Admin;
 
   const [files, setFiles] = useState<FileMeta[]>([]);
   const [search, setSearch] = useState("");

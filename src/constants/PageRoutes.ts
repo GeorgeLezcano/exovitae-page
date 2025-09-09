@@ -1,5 +1,6 @@
 export const PageRoutes = {
   Homepage: "/",
-  Dashboard: "/dashboard",
+  AdminDashboard: "/dashboard",
+  UserPage: "/user",
 } as const;
-export type PageRoute = typeof PageRoutes[keyof typeof PageRoutes];
+export type PageRoute = (typeof PageRoutes)[keyof typeof PageRoutes];

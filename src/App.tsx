@@ -5,6 +5,7 @@ import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { Home } from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
+import { UserHome } from "./pages/UserHome";
 
 export default function App() {
   return (
@@ -13,7 +14,8 @@ export default function App() {
         <Routes>
           <Route path={PageRoutes.Homepage} element={<Home />} />
           <Route element={<ProtectedRoute />}>
-            <Route path={PageRoutes.Dashboard} element={<Dashboard />} />
+            <Route path={PageRoutes.AdminDashboard} element={<Dashboard />} />
+            <Route path={PageRoutes.UserPage} element={<UserHome />} />
           </Route>
         </Routes>
         <ToastContainer position="top-center" autoClose={3000} />
