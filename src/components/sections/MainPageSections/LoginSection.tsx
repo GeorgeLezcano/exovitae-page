@@ -114,46 +114,54 @@ export default function LoginSection() {
         <div className="accentDivider" />
 
         <div className="formColumn formColumnWide">
-          <div className="field">
-            <input
-              className={`inputField ${emailError ? "inputError" : ""}`}
-              placeholder="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-invalid={!!emailError}
-              aria-describedby="email-error"
-              maxLength={MaxAllowedCharacters}
-            />
-            <span id="email-error" className="errorFloat">
-              {emailError}
-            </span>
-          </div>
-
-          <div className="field">
-            <input
-              className={`inputField ${passwordError ? "inputError" : ""}`}
-              placeholder="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              aria-invalid={!!passwordError}
-              aria-describedby="password-error"
-              maxLength={MaxAllowedCharacters}
-            />
-            <span id="password-error" className="errorFloat">
-              {passwordError}
-            </span>
-          </div>
-
-          <button
-            onClick={handleLogin}
-            className="sectionButton"
-            style={{ alignSelf: "center" }}
-            disabled={loading}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+            style={{ display: "flex", flexDirection: "column", width: "100%" }}
           >
-            {loading ? "Logging in..." : "Login"}
-          </button>
+            <div className="field">
+              <input
+                className={`inputField ${emailError ? "inputError" : ""}`}
+                placeholder="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={!!emailError}
+                aria-describedby="email-error"
+                maxLength={MaxAllowedCharacters}
+              />
+              <span id="email-error" className="errorFloat">
+                {emailError}
+              </span>
+            </div>
+
+            <div className="field">
+              <input
+                className={`inputField ${passwordError ? "inputError" : ""}`}
+                placeholder="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                aria-invalid={!!passwordError}
+                aria-describedby="password-error"
+                maxLength={MaxAllowedCharacters}
+              />
+              <span id="password-error" className="errorFloat">
+                {passwordError}
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              className="sectionButton"
+              style={{ alignSelf: "center" }}
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
 
           <div className="generalErrorSlot" role="alert">
             {loading ? (
