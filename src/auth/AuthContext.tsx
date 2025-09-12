@@ -6,15 +6,7 @@ import React, {
   useState,
 } from "react";
 import { setAuthToken } from "../api/client";
-
-type AuthContextType = {
-  token: string | null;
-  setToken: (t: string | null) => void;
-  username: string | null;
-  setUsername: (u: string | null) => void;
-  role: string | null;
-  setRole: (r: string | null) => void;
-};
+import type { AuthContextType } from "../types/login";
 
 const AuthContext = createContext<AuthContextType>(null!);
 

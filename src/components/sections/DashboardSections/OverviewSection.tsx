@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/client";
 import { Endpoints } from "../../../constants/Endpoints";
+import { AppRoles } from "../../../constants/AppRoles";
 
 type OverviewSectionProps = {
   username: string | null;
@@ -52,7 +53,7 @@ export default function OverviewSection({
         const users = await api.get<UserInfo[]>(Endpoints.Users);
         const total = users.length;
         const admins = users.filter(
-          (u) => (u.role ?? "").toLowerCase() === "admin"
+          (u) => (u.role ?? "") === AppRoles.Admin
         ).length;
         setUsersTotal(total);
         setAdminsTotal(admins);

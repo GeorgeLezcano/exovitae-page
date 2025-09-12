@@ -1,4 +1,5 @@
 import { Environment } from "../constants/Enviroment";
+import type { HttpMethod } from "../types/network";
 
 export const BASE_URL = Environment.Production;
 
@@ -6,8 +7,6 @@ let authToken: string | null = null;
 export function setAuthToken(token: string | null) {
   authToken = token;
 }
-
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 async function apiRequest<TResponse, TBody = undefined>(
   method: HttpMethod,

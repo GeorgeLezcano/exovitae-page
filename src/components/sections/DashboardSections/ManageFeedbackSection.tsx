@@ -3,6 +3,7 @@ import { api } from "../../../api/client";
 import { useAuth } from "../../../auth/AuthContext";
 import { Endpoints } from "../../../constants/Endpoints";
 import type { FeedbackResponse } from "../../../types/feedback";
+import { AppRoles } from "../../../constants/AppRoles";
 
 async function fetchAllFeedback(): Promise<FeedbackResponse[]> {
   return await api.get<FeedbackResponse[]>(Endpoints.Feedback);
@@ -14,7 +15,7 @@ async function deleteFeedback(id: string): Promise<void> {
 
 export default function ManageFeedbackSection() {
   const { role } = useAuth();
-  const isAdmin = (role || "").toLowerCase() === "admin";
+  const isAdmin = (role || "") === AppRoles.Admin;
 
   const [feedbacks, setFeedbacks] = useState<FeedbackResponse[]>([]);
   const [loading, setLoading] = useState(false);

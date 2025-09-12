@@ -16,11 +16,12 @@ import ManageFilesSection from "../sections/DashboardSections/ManageFilesSection
 import HealthStatus from "../elements/HealthStatus";
 import RegistrationSection from "../sections/DashboardSections/RegistrationSection";
 import UserManagementSection from "../sections/DashboardSections/UserManagementSection";
-import ResetPasswordModal from "../elements/ResetPasswordModal"; // <-- NEW
+import ResetPasswordModal from "../elements/ResetPasswordModal";
+import { AppRoles } from "../../constants/AppRoles";
 
 export default function DashboardLayout() {
   const { setToken, username, setUsername, role } = useAuth();
-  const isAdmin = (role || "").toLowerCase() === "admin";
+  const isAdmin = (role || "") === AppRoles.Admin;
 
   const [searchParams, setSearchParams] = useSearchParams();
 
