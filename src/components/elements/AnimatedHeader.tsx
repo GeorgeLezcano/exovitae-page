@@ -520,7 +520,7 @@ export function AnimatedHeader({
       >
         {/* Overlay UI here */}
         <a
-          href={`${Environment.GameServerDev}`}
+          href={`${Environment.GameServerProd}`}
           target="_blank"
           rel="noopener noreferrer"
         >
