@@ -3,9 +3,12 @@ import { setAuthToken } from "../../api/client";
 import { PageRoutes } from "../../constants/PageRoutes";
 import { SideButtonRoutes } from "../../constants/SideButtonRoutes";
 import { useAuth } from "../../auth/AuthContext";
+import ResetPasswordModal from "../elements/ResetPasswordModal";
+import { useState } from "react";
 
 export default function UserLayout() {
   const { username, setToken, setUsername, setRole } = useAuth();
+  const [pwOpen, setPwOpen] = useState(false);
 
   const handleLogout = () => {
     setAuthToken(null);
@@ -34,6 +37,15 @@ export default function UserLayout() {
           <p>Blank for now...</p>
           <button
             className="sectionButton"
+            onClick={() => setPwOpen(true)}
+            aria-label="Reset password"
+            title="Reset password"
+          >
+            Reset Password
+          </button>
+          <br />
+          <button
+            className="sectionButton"
             onClick={handleLogout}
             aria-label="Logout"
             title="Logout"
@@ -42,6 +54,8 @@ export default function UserLayout() {
           </button>
         </div>
       </section>
+
+      <ResetPasswordModal open={pwOpen} onClose={() => setPwOpen(false)} />
     </div>
   );
 }

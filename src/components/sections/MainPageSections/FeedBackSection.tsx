@@ -21,7 +21,6 @@ export default function FeedBackSection() {
 
   const NAME_MAX = 64;
   const FEEDBACK_MAX = 1000;
-  const FEEDBACK_MIN = 10;
 
   const handleSubmit = async () => {
     setNameError("");
@@ -38,8 +37,6 @@ export default function FeedBackSection() {
     else if (cleanName.length > NAME_MAX) setNameError("Name is too long.");
 
     if (!cleanFeedback) setFeedbackError("Feedback is required.");
-    else if (cleanFeedback.length < FEEDBACK_MIN)
-      setFeedbackError("Please provide more detail.");
     else if (cleanFeedback.length > FEEDBACK_MAX)
       setFeedbackError("Feedback is too long.");
 
@@ -51,7 +48,6 @@ export default function FeedBackSection() {
       !cleanName ||
       !cleanFeedback ||
       cleanName.length > NAME_MAX ||
-      cleanFeedback.length < FEEDBACK_MIN ||
       cleanFeedback.length > FEEDBACK_MAX ||
       !Number.isFinite(cleanRating) ||
       cleanRating < 1 ||
