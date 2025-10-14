@@ -48,11 +48,31 @@ export default function ResetPasswordModal({
 
   const validate = () => {
     const errs: Partial<Record<keyof ResetPasswordRequest, string>> = {};
+
     if (!current.trim()) errs.currentPassword = "Current password is required.";
-    if (!next.trim()) errs.newPassword = "New password is required.";
-    if (!confirm.trim())
+
+    const np = next.trim();
+    if (!np) {
+      errs.newPassword = "New password is required.";
+    } else {
+      if (np.length < 8)
+        errs.newPassword = "Password must be at least 8 characters.";
+      else if (!/[a-z]/.test(np))
+        errs.newPassword =
+          "Password must include at least one lowercase letter.";
+      else if (!/[A-Z]/.test(np))
+        errs.newPassword =
+          "Password must include at least one uppercase letter.";
+      else if (!/\d/.test(np))
+        errs.newPassword = "Password must include at least one digit.";
+      else if (!/[^A-Za-z0-9]/.test(np))
+        errs.newPassword = "Password must include at least one symbol.";
+    }
+
+    const cp = confirm.trim();
+    if (!cp) {
       errs.confirmNewPassword = "Confirm password is required.";
-    if (next && confirm && next !== confirm) {
+    } else if (np && cp && np !== cp) {
       errs.confirmNewPassword = "Confirmation does not match the new password.";
     }
     setFieldErrors(errs);
@@ -73,19 +93,37 @@ export default function ResetPasswordModal({
       });
       onClose();
     } catch (err: any) {
-      const title = err?.title || err?.message || "Password change failed.";
-      const errors = err?.errors as Record<string, string[]> | undefined;
+      const title =
+        err?.response?.data?.title ||
+        err?.title ||
+        err?.message ||
+        "Password change failed.";
+      const errors =
+        err?.response?.data?.errors ||
+        err?.errors ||
+        (err?.response?.data?.detail
+          ? { general: [err.response.data.detail] }
+          : undefined);
 
       const mapped: Partial<Record<keyof ResetPasswordRequest, string>> = {};
-      if (errors) {
-        if (errors.currentPassword?.length)
-          mapped.currentPassword = errors.currentPassword[0];
-        if (errors.newPassword?.length)
-          mapped.newPassword = errors.newPassword[0];
-        if (errors.confirmNewPassword?.length)
-          mapped.confirmNewPassword = errors.confirmNewPassword[0];
-        if (errors.password?.length && !mapped.newPassword)
-          mapped.newPassword = errors.password[0];
+      if (errors && typeof errors === "object") {
+        const currentPw = errors.currentPassword ?? errors.CurrentPassword;
+        const newPw =
+          errors.newPassword ??
+          errors.NewPassword ??
+          errors.password ??
+          errors.Password;
+        const confirmPw =
+          errors.confirmNewPassword ??
+          errors.ConfirmNewPassword ??
+          errors.confirm ??
+          errors.Confirm;
+
+        if (Array.isArray(currentPw) && currentPw.length)
+          mapped.currentPassword = currentPw[0];
+        if (Array.isArray(newPw) && newPw.length) mapped.newPassword = newPw[0];
+        if (Array.isArray(confirmPw) && confirmPw.length)
+          mapped.confirmNewPassword = confirmPw[0];
       }
 
       setFieldErrors(mapped);
