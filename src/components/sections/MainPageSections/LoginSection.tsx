@@ -6,6 +6,7 @@ import { PageRoutes } from "../../../constants/PageRoutes";
 import { Endpoints } from "../../../constants/Endpoints";
 import type { LoginRequest, LoginResponse } from "../../../types/login";
 import { AppRoles } from "../../../constants/AppRoles";
+import RegistrationModal from "../../elements/RegistrationModal";
 
 const EmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MaxAllowedCharacters = 64;
@@ -21,6 +22,7 @@ export default function LoginSection() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
+  const [regOpen, setRegOpen] = useState(false);
 
   const handleLogin = async () => {
     setEmailError("");
@@ -106,6 +108,26 @@ export default function LoginSection() {
     }
   };
 
+  const handleRegistered = (res: LoginResponse) => {
+    if (res?.token) {
+      setToken(res.token);
+      setUsername(res.username ?? null);
+      setRole(res.role ?? null);
+
+      const role = res.role ?? "";
+      const from = (location.state as { from?: string } | null)?.from;
+      if (from) {
+        nav(from, { replace: true });
+      } else if (role === AppRoles.Admin) {
+        nav(PageRoutes.AdminDashboard, { replace: true });
+      } else {
+        nav(PageRoutes.UserPage, { replace: true });
+      }
+    } else {
+      setGeneralError("Account created. Please log in.");
+    }
+  };
+
   return (
     <div className="sectionShell flushTop">
       <section className="sectionCard">
@@ -161,6 +183,30 @@ export default function LoginSection() {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
+
+            <div className="sectionAuthActions">
+              <button
+                type="button"
+                className="sectionButton"
+                style={{ alignSelf: "center" }}
+                disabled={true} // disabled={loading}
+                title="Temporarily Disabled"
+                onClick={() => setRegOpen(true)}
+              >
+                Create New Account
+              </button>
+
+              <button
+                type="button"
+                className="sectionButton"
+                style={{ alignSelf: "center" }}
+                disabled={true}
+                title="Temporarily Disabled"
+                onClick={() => {}}
+              >
+                Forgot Password
+              </button>
+            </div>
           </form>
 
           <div className="generalErrorSlot" role="alert">
@@ -172,6 +218,12 @@ export default function LoginSection() {
           </div>
         </div>
       </section>
+
+      <RegistrationModal
+        open={regOpen}
+        onClose={() => setRegOpen(false)}
+        onRegistered={handleRegistered}
+      />
     </div>
   );
 }

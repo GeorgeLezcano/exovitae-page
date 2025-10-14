@@ -88,6 +88,9 @@ export function MainLayout() {
             tooltip={item.tooltip}
           />
         ))}
+        <footer className="menu-footer">
+          <div>© {new Date().getFullYear()} Exovitae</div>
+        </footer>
       </SideBar>
 
       <div className="info-panel">
