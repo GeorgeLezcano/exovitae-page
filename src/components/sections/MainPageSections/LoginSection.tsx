@@ -161,6 +161,31 @@ export default function LoginSection() {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
+
+            <div className="sectionAuthActions">
+              <button
+                type="submit"
+                className="sectionButton"
+                style={{ alignSelf: "center" }}
+                disabled={true}
+                title="Temporarily Disabled"
+                onClick={()=> {}}
+                
+              >
+                Create New Account
+              </button>
+
+              <button
+                type="submit"
+                className="sectionButton"
+                style={{ alignSelf: "center" }}
+                disabled={true}
+                title="Temporarily Disabled"
+                onClick={()=> {}}
+              >
+                Forgot Password
+              </button>
+            </div>
           </form>
 
           <div className="generalErrorSlot" role="alert">

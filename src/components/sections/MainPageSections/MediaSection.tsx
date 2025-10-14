@@ -135,7 +135,7 @@ export default function MediaSection() {
 
       <div className="sectionCard" style={{ maxWidth: "1200px" }}>
         <h1 className="pageTitle">Media</h1>
-        <p className="pageSubtitle">Browse Public Images</p>
+        <p className="pageSubtitle">Browse Game Images</p>
         <div className="accentDivider" />
 
         {/* header: arrows (left) + count (right) */}
@@ -174,7 +174,7 @@ export default function MediaSection() {
               ? "Loading…"
               : items.length
               ? `Image ${idx + 1} of ${items.length}`
-              : "No images"}
+              : ""}
           </div>
         </div>
 
@@ -314,13 +314,7 @@ export default function MediaSection() {
             <span className="spinner" />
           </div>
         )}
-        {!loadingList && items.length === 0 && (
-          <div className="metaSubtle" style={{ textAlign: "center" }}>
-            No Images to display
-          </div>
-        )}
       </div>
-
       {zoom && current && (
         <Lightbox
           src={fileSrc(current.id)}
