@@ -8,7 +8,7 @@ export default function FeaturesSection() {
 
         <div className="card">
           <div className="cardBody metaSubtle">
-            Features will be spawning here soon!
+            Game Features will be spawning here soon!
           </div>
         </div>
       </div>

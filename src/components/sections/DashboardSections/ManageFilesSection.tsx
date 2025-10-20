@@ -8,7 +8,7 @@ import {
   mapDtoToFileMeta,
 } from "../../../types/files";
 import UploadModal from "../../elements/UploadModal";
-import PreviewModal from "../../elements/PreviewModal";
+import PreviewModal from "../../common/PreviewModal";
 import { Endpoints } from "../../../constants/Endpoints";
 import { AppRoles } from "../../../constants/AppRoles";
 
@@ -62,13 +62,21 @@ export default function ManageFilesSection() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return files;
-    return files.filter(
-      (f) =>
+    return files.filter((f) => {
+      const textHit =
         (f.name + "." + f.extension).toLowerCase().includes(q) ||
         f.type.toLowerCase().includes(q) ||
         f.extension.toLowerCase().includes(q) ||
-        (f.description ?? "").toLowerCase().includes(q)
-    );
+        (f.description ?? "").toLowerCase().includes(q);
+
+      const isPublic = !!f.isPublic;
+      const statusTokens = isPublic
+        ? ["public", "enabled", "visible"]
+        : ["private", "disabled", "hidden"];
+      const visibilityHit = statusTokens.some((t) => t.includes(q));
+
+      return textHit || visibilityHit;
+    });
   }, [files, search]);
 
   const totalSize = useMemo(
@@ -185,14 +193,6 @@ export default function ManageFilesSection() {
           </div>
 
           <div className="stack-h" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
-            <input
-              className="inputField"
-              placeholder="Search Files"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ maxWidth: 320 }}
-            />
-
             <button
               className="sectionButton"
               title={isAdmin ? "Upload" : "Admin only"}
@@ -201,19 +201,53 @@ export default function ManageFilesSection() {
             >
               Upload
             </button>
-
-            <button
-              className="sectionButton"
-              title={isAdmin ? "Delete selected" : "Admin only"}
-              disabled={!isAdmin || selected.size === 0}
-              onClick={handleDeleteSelected}
-            >
-              Delete Selected
-            </button>
+            <input
+              className="inputField"
+              placeholder="Search Files (name, type, desc, public/private)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ maxWidth: 360 }}
+            />
           </div>
         </div>
-
-        <div className="card" style={{ marginBottom: "0.75rem" }}>
+        {selected.size > 0 && (
+          <div
+            className="card"
+            style={{
+              margin: 0, 
+              padding: "0.5rem 0.75rem",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "0.75rem",
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+            }}
+          >
+            <div className="metaSubtle">
+              <strong>{selected.size}</strong> selected
+            </div>
+            <div className="stack-h" style={{ gap: "0.5rem" }}>
+              <button
+                className="sectionButton"
+                title={isAdmin ? "Delete selected" : "Admin only"}
+                disabled={!isAdmin || selected.size === 0}
+                onClick={handleDeleteSelected}
+              >
+                Delete Selected
+              </button>
+            </div>
+          </div>
+        )}
+        <div
+          className="card"
+          style={{
+            marginTop: 0, 
+            marginBottom: "0.75rem",
+            borderTopLeftRadius: selected.size > 0 ? 0 : undefined,
+            borderTopRightRadius: selected.size > 0 ? 0 : undefined,
+          }}
+        >
           <div
             className="stack-h"
             style={{
@@ -238,11 +272,10 @@ export default function ManageFilesSection() {
               Uploaded
             </div>
             <div className="metaSubtle" style={{ textAlign: "right" }}>
-              Actions
+              Visibility / Actions
             </div>
           </div>
         </div>
-
         <div className="listStack">
           {filtered.length === 0 ? (
             <p style={{ marginTop: "0.5rem" }}>
@@ -302,8 +335,28 @@ export default function ManageFilesSection() {
                       justifyContent: "flex-end",
                       gap: "0.5rem",
                       flexWrap: "wrap",
+                      alignItems: "center",
                     }}
                   >
+                    <label
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        marginRight: "0.25rem",
+                      }}
+                      title={isAdmin ? "Toggle visibility" : "Admin only"}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!!f.isPublic}
+                        onChange={() => handleToggleVisibility(f)}
+                        disabled={!isAdmin || typeof f.isPublic !== "boolean"}
+                        aria-label={`Set public visibility for ${f.name}.${f.extension}`}
+                      />
+                      <span className="metaSubtle">Public</span>
+                    </label>
+
                     <button
                       className="sectionButton"
                       onClick={() =>
@@ -332,14 +385,6 @@ export default function ManageFilesSection() {
                       }}
                     >
                       Delete
-                    </button>
-                    <button
-                      className="sectionButton"
-                      title={isAdmin ? "Toggle visibility" : "Admin only"}
-                      disabled={!isAdmin || typeof f.isPublic !== "boolean"}
-                      onClick={() => handleToggleVisibility(f)}
-                    >
-                      {f.isPublic ? "Make Private" : "Make Public"}
                     </button>
                   </div>
                 </div>

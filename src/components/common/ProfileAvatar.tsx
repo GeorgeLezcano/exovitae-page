@@ -25,7 +25,7 @@ export default function ProfileAvatar() {
     (async () => {
       setLoading(true);
       try {
-        const blob = await api.getBlob(`${Endpoints.Files}/profile`);
+        const blob = await api.getBlob(Endpoints.ProfileAvatar);
         if (cancelled) return;
         const url = URL.createObjectURL(blob);
         setSafeSrc(url);
@@ -58,7 +58,7 @@ export default function ProfileAvatar() {
       const form = new FormData();
       form.append("file", file);
 
-      await api.uploadForm(`${Endpoints.Files}/profile`, form);
+      await api.uploadForm(Endpoints.ProfileAvatar, form);
     } catch {
       setSrc(defaultProfileAvatar);
     } finally {
@@ -139,8 +139,6 @@ export default function ProfileAvatar() {
         style={{ display: "none" }}
         onChange={onFileChange}
       />
-
-      {/* tiny inline keyframes to keep it self-contained */}
       <style>
         {`@keyframes spin { from {transform: rotate(0)} to {transform: rotate(360deg)} }`}
       </style>

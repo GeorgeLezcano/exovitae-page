@@ -16,7 +16,7 @@ import ManageFilesSection from "../sections/DashboardSections/ManageFilesSection
 import HealthStatus from "../elements/HealthStatus";
 import RegistrationSection from "../sections/DashboardSections/RegistrationSection";
 import UserManagementSection from "../sections/DashboardSections/UserManagementSection";
-import ResetPasswordModal from "../elements/ResetPasswordModal";
+import ResetPasswordModal from "../common/ResetPasswordModal";
 import { AppRoles } from "../../constants/AppRoles";
 import ProfileAvatar from "../common/ProfileAvatar";
 

@@ -81,10 +81,16 @@ export default function FeedBackSection() {
   };
 
   return (
-    <div className="sectionShell">
-      <section className="sectionCard">
+    <div className="sectionShell flushTop">
+      <section
+        className="sectionCard"
+        style={{ maxWidth: "1400px", margin: "0 auto" }}
+      >
         <h1 className="pageTitle">Game Feedback</h1>
-        <p className="pageSubtitle"></p>
+        <p className="pageSubtitle">
+          Share your thoughts, ideas, or bugs — every note helps shape the
+          project.
+        </p>
         <div className="accentDivider" />
 
         <div className="formColumn formColumnWide">
@@ -118,7 +124,7 @@ export default function FeedBackSection() {
               ariaDescribedBy="rating-error"
             />
           </div>
-          
+
           <div className="field">
             <textarea
               className={`inputFieldLarge ${feedbackError ? "inputError" : ""}`}
