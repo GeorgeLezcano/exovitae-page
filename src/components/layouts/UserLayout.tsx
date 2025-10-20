@@ -3,8 +3,10 @@ import { setAuthToken } from "../../api/client";
 import { PageRoutes } from "../../constants/PageRoutes";
 import { SideButtonRoutes } from "../../constants/SideButtonRoutes";
 import { useAuth } from "../../auth/AuthContext";
-import ResetPasswordModal from "../elements/ResetPasswordModal";
+import ResetPasswordModal from "../common/ResetPasswordModal";
 import { useState } from "react";
+import ProfileAvatar from "../common/ProfileAvatar";
+import { Environment } from "../../constants/Enviroment";
 
 export default function UserLayout() {
   const { username, setToken, setUsername, setRole } = useAuth();
@@ -29,12 +31,22 @@ export default function UserLayout() {
     <div className="main-layout">
       <section className="info-panel">
         <header className="header" style={{ minHeight: 96 }}>
-          <h1 style={{ margin: 0 }}>Welcome {displayName}</h1>
-          <p style={{ opacity: 0.8 }}>This is the user section</p>
+          <ProfileAvatar />
+          <h1 style={{ margin: 0, paddingBottom: 12 }}>
+            Welcome {displayName}
+          </h1>
+          <a
+            href={`${Environment.GameServerProd}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <button type="button" className="animatedButton playNow">
+              ▶ Play Game
+            </button>
+          </a>
         </header>
         <div className="details-view">
-          <h2>User Home</h2>
-          <p>Blank for now...</p>
+          <h2>This page is under developmenet</h2>
           <button
             className="sectionButton"
             onClick={() => setPwOpen(true)}

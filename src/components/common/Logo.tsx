@@ -1,3 +1,5 @@
+import { exovitaeLogo } from "../../constants/Global";
+
 type LogoProps = {
   size?: string;
   className?: string;
@@ -6,7 +8,7 @@ type LogoProps = {
 export function Logo({ size = "100%", className = "" }: LogoProps) {
   return (
     <img
-      src="exovitae_logo.png"
+      src={exovitaeLogo}
       alt="Logo"
       width={size}
       height={size}

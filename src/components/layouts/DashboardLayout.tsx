@@ -16,8 +16,9 @@ import ManageFilesSection from "../sections/DashboardSections/ManageFilesSection
 import HealthStatus from "../elements/HealthStatus";
 import RegistrationSection from "../sections/DashboardSections/RegistrationSection";
 import UserManagementSection from "../sections/DashboardSections/UserManagementSection";
-import ResetPasswordModal from "../elements/ResetPasswordModal";
+import ResetPasswordModal from "../common/ResetPasswordModal";
 import { AppRoles } from "../../constants/AppRoles";
+import ProfileAvatar from "../common/ProfileAvatar";
 
 export default function DashboardLayout() {
   const { setToken, username, setUsername, role } = useAuth();
@@ -97,17 +98,8 @@ export default function DashboardLayout() {
             marginBottom: "2rem",
           }}
         >
-          <img
-            src="default_profile_icon.png"
-            style={{
-              width: "80px",
-              height: "80px",
-              borderRadius: "50%",
-              marginBottom: "0.5rem",
-              border: "2px solid #2196f3",
-            }}
-            alt="Profile"
-          />
+          <ProfileAvatar/>
+          
           <div style={{ fontSize: "1rem", fontWeight: "bold", color: "#fff" }}>
             <div
               style={{ fontSize: "1rem", fontWeight: "bold", color: "#fff" }}

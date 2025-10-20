@@ -9,6 +9,7 @@ export const Endpoints = {
   UserEnabled: "/api/auth/set-enabled",
   Login: "/api/auth/login",
   PublicFiles: "/api/files/public",
+  ProfileAvatar: "/api/files/profile"
 } as const;
 
 export type Endpoints =

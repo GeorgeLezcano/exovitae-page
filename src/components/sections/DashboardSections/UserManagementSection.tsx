@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../../api/client";
 import AdminResetPasswordModal from "../../elements/AdminResetPasswordModal";
 import { Endpoints } from "../../../constants/Endpoints";
@@ -46,6 +46,8 @@ export default function UserManagementSection() {
   const [resetting, setResetting] = useState(false);
   const [resetError, setResetError] = useState<string>("");
   const [tempPassword, setTempPassword] = useState<string | null>(null);
+
+  const [search, setSearch] = useState("");
 
   const refresh = async () => {
     setLoading(true);
@@ -140,32 +142,61 @@ export default function UserManagementSection() {
     setResetOpen(true);
   };
 
+  const filteredUsers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter((u) => {
+      const uname = (u.username || "").toLowerCase();
+      const email = (u.email || "").toLowerCase();
+      const role = (u.role || "").toLowerCase();
+      const status = u.enabled ? "enabled" : "disabled";
+      return (
+        uname.includes(q) ||
+        email.includes(q) ||
+        role.includes(q) ||
+        status.includes(q)
+      );
+    });
+  }, [users, search]);
+
   return (
     <div className="w-100 max-900">
-      <div className="sectionHeader">
+      <div className="sectionHeader" style={{ marginBottom: 0 }}>
         <div>
           <h1 style={{ margin: 0 }}>User Management</h1>
           <div className="metaSubtle">
-            {users.length} user{users.length !== 1 ? "s" : ""}
+            {filteredUsers.length} of {users.length} user
+            {users.length !== 1 ? "s" : ""}
             {lastRefreshed ? ` • Last refreshed: ${lastRefreshed}` : ""}
           </div>
         </div>
+        
+        <div className="stack-h" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
+          <button
+            className="sectionButton"
+            onClick={refresh}
+            disabled={loading}
+            aria-label="Refresh users"
+            title="Refresh"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            {loading ? <span className="spinner" /> : null}
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
 
-        <button
-          className="sectionButton"
-          onClick={refresh}
-          disabled={loading}
-          aria-label="Refresh users"
-          title="Refresh"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
-        >
-          {loading ? <span className="spinner" /> : null}
-          {loading ? "Refreshing..." : "Refresh"}
-        </button>
+          <input
+            className="inputField"
+            placeholder="Search users (name, email, role, enabled/disabled)"
+            aria-label="Search users"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ maxWidth: 360 }}
+          />
+        </div>
       </div>
 
       {error ? (
@@ -173,11 +204,12 @@ export default function UserManagementSection() {
           {error}
         </div>
       ) : null}
-      <div className="listStack">
-        {users.length === 0 && !loading ? (
+
+      <div className="listStack" style={{ marginTop: "0.75rem" }}>
+        {filteredUsers.length === 0 && !loading ? (
           <p>No users found.</p>
         ) : (
-          users.map((u, idx) => {
+          filteredUsers.map((u, idx) => {
             const email = u.email ?? "";
             const isRoleBusy = !!roleBusy[email];
             const isEnabledBusy = !!enabledBusy[email];
@@ -208,6 +240,7 @@ export default function UserManagementSection() {
                         alignItems: "center",
                         gap: "0.5rem",
                       }}
+                      title="Toggle account enabled state"
                     >
                       <input
                         type="checkbox"
@@ -216,9 +249,9 @@ export default function UserManagementSection() {
                           handleToggleEnabled(email, e.target.checked)
                         }
                         disabled={isEnabledBusy}
-                        aria-label={`Toggle ${email} enabled status`}
+                        aria-label={`Set enabled for ${email}`}
                       />
-                      <span>{u.enabled ? "Enabled" : "Disabled"}</span>
+                      <span>Enabled</span>
                     </label>
 
                     <button
