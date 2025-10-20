@@ -1,0 +1,1 @@
+export const  defaultProfileAvatar = "default_profile_icon.png"
