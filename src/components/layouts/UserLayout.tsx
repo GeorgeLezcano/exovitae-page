@@ -35,7 +35,8 @@ export default function UserLayout() {
           <h1 style={{ margin: 0, paddingBottom: 12 }}>
             Welcome {displayName}
           </h1>
-          <a
+          {/* Not using overlay button now */}
+          {/* <a
             href={`${Environment.GameServerProd}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -43,7 +44,7 @@ export default function UserLayout() {
             <button type="button" className="animatedButton playNow">
               ▶ Play Game
             </button>
-          </a>
+          </a> */}
         </header>
         <div className="details-view">
           <h2>This page is under developmenet</h2>

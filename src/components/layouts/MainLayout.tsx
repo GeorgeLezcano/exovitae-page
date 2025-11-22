@@ -28,7 +28,7 @@ export function MainLayout() {
   useEffect(() => {
     if (!isValid) {
       setSearchParams(
-        { tab: SideButtonRoutes.GameOverview },
+        { tab: SideButtonRoutes.Login },
         { replace: true }
       );
     }
@@ -36,7 +36,7 @@ export function MainLayout() {
 
   const selected = isValid
     ? (tabParamRaw as (typeof validRoutes)[number])
-    : SideButtonRoutes.GameOverview;
+    : SideButtonRoutes.Login;
 
   const handleSideButtonOnClick = (linkTo: (typeof validRoutes)[number]) => {
     setSearchParams({ tab: linkTo }, { replace: true });
