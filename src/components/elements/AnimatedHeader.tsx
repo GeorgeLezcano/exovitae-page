@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { Environment } from "../../constants/Enviroment";
 
 type AnimatedHeaderProps = {
   className?: string;

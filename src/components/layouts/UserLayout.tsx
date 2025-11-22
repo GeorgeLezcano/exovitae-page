@@ -6,7 +6,6 @@ import { useAuth } from "../../auth/AuthContext";
 import ResetPasswordModal from "../common/ResetPasswordModal";
 import { useState } from "react";
 import ProfileAvatar from "../common/ProfileAvatar";
-import { Environment } from "../../constants/Enviroment";
 
 export default function UserLayout() {
   const { username, setToken, setUsername, setRole } = useAuth();
