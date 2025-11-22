@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { Environment } from "../../constants/Enviroment";
 
 type AnimatedHeaderProps = {
   className?: string;
@@ -518,8 +517,10 @@ export function AnimatedHeader({
           paddingLeft: "10%",
         }}
       >
-        {/* Overlay UI here */}
-        <a
+        {/* Overlay UI */}
+        {/* Not using overlay button now. This will
+        become a way to download the client */}
+        {/* <a
           href={`${Environment.GameServerProd}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -527,7 +528,7 @@ export function AnimatedHeader({
           <button type="button" className="animatedButton playNow">
             ▶ Play Game
           </button>
-        </a>
+        </a> */}
       </div>
     </header>
   );
