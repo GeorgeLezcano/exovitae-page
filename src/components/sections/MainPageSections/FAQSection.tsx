@@ -68,18 +68,6 @@ export default function FAQSection() {
         </div>
 
         <div className="card">
-          <div className="cardHeader" style={headerWrapStyle}>
-            <h3 style={questionStyle}>Why are accounts disabled?</h3>
-          </div>
-          <div className="cardBody metaSubtle">
-            <p style={answerStyle}>
-              The game is in very early development and there isn’t much to show
-              yet. Accounts will open to the public as more features land. Stay
-              tuned for testing and contribution opportunities.
-            </p>
-          </div>
-        </div>
-        <div className="card">
           <div className="cardBody metaSubtle" style={{ fontStyle: "italic" }}>
             <p style={{ textAlign: "center", margin: 0 }}>
               More questions will spawn here over time — thanks for reading and

@@ -63,7 +63,9 @@ export default function LoginSection() {
       });
 
       if (!res.token) {
-        setGeneralError("Login succeeded but no token was returned.");
+        setGeneralError(
+          "Login succeeded but navigate to account. Please try again later"
+        );
         return;
       }
 
@@ -132,7 +134,7 @@ export default function LoginSection() {
     <div className="sectionShell flushTop">
       <section className="sectionCard">
         <h1 className="pageTitle">Login</h1>
-        <p className="pageSubtitle">No public accounts yet, stay tuned</p>
+        <p className="pageSubtitle">Login or create a new account to play</p>
         <div className="accentDivider" />
 
         <div className="formColumn formColumnWide">
@@ -187,25 +189,41 @@ export default function LoginSection() {
             <div className="sectionAuthActions">
               <button
                 type="button"
-                className="sectionButton"
-                style={{ alignSelf: "center" }}
-                disabled={true} // disabled={loading}
-                title="Temporarily Disabled"
                 onClick={() => setRegOpen(true)}
+                disabled={loading}
+                style={{
+                  alignSelf: "center",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  margin: 0,
+                  color: "white",
+                  cursor: loading ? "default" : "pointer",
+                  textDecoration: "underline",
+                  fontSize: "inherit",
+                }}
               >
                 Create New Account
               </button>
-
-              <button
-                type="button"
-                className="sectionButton"
-                style={{ alignSelf: "center" }}
-                disabled={true}
+              <a
+                href="#"
+                style={{
+                  alignSelf: "center",
+                  color: "white",
+                }}
                 title="Temporarily Disabled"
-                onClick={() => {}}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (loading) return;
+                  setGeneralError(
+                    //TODO figure out secure way to reset password. Admin force resets for now only
+                    "This feature is not enabled yet. Please contact an administrator for password resets."
+                  );
+                }}
+                aria-disabled={loading}
               >
                 Forgot Password
-              </button>
+              </a>
             </div>
           </form>
 

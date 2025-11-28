@@ -34,16 +34,16 @@ export default function UserLayout() {
           <h1 style={{ margin: 0, paddingBottom: 12 }}>
             Welcome {displayName}
           </h1>
-          {/* Not using overlay button now */}
-          {/* <a
-            href={`${Environment.GameServerProd}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            className="animatedButton playNow"
+            onClick={() => {
+              //TODO add client download logic
+              alert("Client not available for downlaod yet");
+            }}
           >
-            <button type="button" className="animatedButton playNow">
-              ▶ Play Game
-            </button>
-          </a> */}
+            Download Game Client
+          </button>
         </header>
         <div className="details-view">
           <h2>This page is under developmenet</h2>
