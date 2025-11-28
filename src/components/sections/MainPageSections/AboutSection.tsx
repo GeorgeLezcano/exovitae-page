@@ -52,6 +52,19 @@ export default function AboutSection() {
         >
           Thanks for checking it out. More to come as the journey continues.
         </p>
+
+        <p
+          style={{
+            fontSize: "1.125rem",
+            lineHeight: 1.8,
+            color: "#d0e8ff",
+            margin: "1.25rem auto 0",
+            maxWidth: 1000,
+            fontStyle: "italic",
+          }}
+        >
+          George L
+        </p>
       </section>
     </div>
   );
