@@ -25,7 +25,7 @@ export default function UserLayout() {
   const { username, setToken, setUsername, setRole } = useAuth();
   const [pwOpen, setPwOpen] = useState(false);
 
-  const [busy, setBusy] = useState<"download" | "refresh" | null>(null);
+  const [busy, setBusy] = useState<"download" | null>(null);
   const [error, setError] = useState<string>("");
 
   const [meta, setMeta] = useState<ClientMeta | null>(null);
@@ -102,13 +102,10 @@ export default function UserLayout() {
 
   const downloadDisabled = metaLoading || !!busy || !hasClient;
 
-  const downloadLabel = metaLoading
-    ? "Checking availability..."
-    : hasClient
-    ? busy === "download"
-      ? "Downloading..."
-      : "Download Game Client"
-    : "Download Game Client";
+  const downloadLabel =
+    busy === "download" ? "Downloading…" : "Download Game Client";
+
+  const showSpinner = busy === "download" || metaLoading;
 
   return (
     <div className="main-layout">
@@ -133,21 +130,55 @@ export default function UserLayout() {
             style={{
               opacity: downloadDisabled ? 0.75 : 1,
               cursor: downloadDisabled ? "not-allowed" : "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              lineHeight: 1,
+              verticalAlign: "middle",
+              paddingTop: 12,
+              paddingBottom: 12,
             }}
           >
-            {busy === "download" || metaLoading ? (
-              <span className="spinner" />
-            ) : null}
-            {downloadLabel}
+            {showSpinner == true ? (
+              <span
+                className="spinner"
+                style={{
+                  visibility: "visible",
+                  flex: "0 0 auto",
+                }}
+              />
+            ) : (
+              <span
+                style={{
+                  display: "inline-block",
+                  lineHeight: 1,
+                  transform: "translateY(0)",
+                }}
+              >
+                ▶️
+              </span>
+            )}
+            <span
+              style={{
+                display: "inline-block",
+                lineHeight: 1,
+                transform: "translateY(0)",
+              }}
+            >
+              {downloadLabel}
+            </span>
           </button>
 
           <div
             className="metaSubtle"
-            style={{ marginTop: 10, textAlign: "center" }}
+            style={{
+              marginTop: 10,
+              textAlign: "center",
+              minHeight: 34,
+            }}
           >
-            {metaLoading ? (
-              <span></span>
-            ) : hasClient ? (
+            {metaLoading ? null : hasClient ? (
               <>
                 <span style={{ display: "block" }}>
                   <strong>{meta?.name}</strong>
@@ -163,28 +194,30 @@ export default function UserLayout() {
               </span>
             )}
           </div>
-          {busy === "download" ? (
-            <div
-              className="metaSubtle"
-              style={{
-                marginTop: 6,
-                textAlign: "center",
-                fontSize: "0.85rem",
-              }}
-            >
-              Downloading… please avoid refreshing or closing this page.
-            </div>
-          ) : null}
         </header>
 
         <div className="details-view">
+            {busy === "download" ? (
+            <div
+              className="metaSubtle"
+              style={{
+                color: "red",
+                marginTop: 6,
+                textAlign: "center",
+                fontSize: "1rem",
+              }}
+            >
+               <h1 style={{ margin: 0, paddingBottom: 12 }}>
+                DO NOT refresh or close this page until download is finished. Progress bar soon!
+               </h1>
+              
+            </div>
+          ) : null}
+
           <header className="cardHeader">
             <div>
               <h1 style={{ margin: 0, paddingBottom: 12 }}>
                 Page is under construction.
-              </h1>
-              <h1 style={{ margin: 0, paddingBottom: 12 }}>
-                Some features may not be fully working.
               </h1>
             </div>
           </header>
@@ -195,19 +228,25 @@ export default function UserLayout() {
             </div>
           ) : null}
 
-          <div style={{ marginTop: "0.75rem" }}>
+          <div
+            style={{
+              marginTop: "0.75rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "0.75rem",
+            }}
+          >
             <button
               className="sectionButton"
               onClick={() => setPwOpen(true)}
               aria-label="Reset password"
               title="Reset password"
               disabled={!!busy}
+              style={{ width: "min(260px, 100%)" }}
             >
               Reset Password
             </button>
-
-            <br />
-            <br />
 
             <button
               className="sectionButton"
@@ -215,6 +254,7 @@ export default function UserLayout() {
               aria-label="Logout"
               title="Logout"
               disabled={!!busy}
+              style={{ width: "min(260px, 100%)" }}
             >
               Logout
             </button>
