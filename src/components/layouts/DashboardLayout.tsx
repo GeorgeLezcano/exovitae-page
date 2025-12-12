@@ -19,6 +19,7 @@ import UserManagementSection from "../sections/DashboardSections/UserManagementS
 import ResetPasswordModal from "../common/ResetPasswordModal";
 import { AppRoles } from "../../constants/AppRoles";
 import ProfileAvatar from "../common/ProfileAvatar";
+import GameClientSection from "../sections/DashboardSections/GameClientSection";
 
 export default function DashboardLayout() {
   const { setToken, username, setUsername, role } = useAuth();
@@ -72,6 +73,8 @@ export default function DashboardLayout() {
             }
           />
         );
+      case DashBoardButtonRoutes.GameClient:
+        return <GameClientSection/>
       case DashBoardButtonRoutes.FeedBack:
         return <ManageFeedbackSection />;
       case DashBoardButtonRoutes.Files:

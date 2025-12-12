@@ -11,17 +11,7 @@ import UploadModal from "../../elements/UploadModal";
 import PreviewModal from "../../common/PreviewModal";
 import { Endpoints } from "../../../constants/Endpoints";
 import { AppRoles } from "../../../constants/AppRoles";
-
-function formatBytes(n: number | undefined): string {
-  if (!n || n <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.min(
-    Math.floor(Math.log(n) / Math.log(1024)),
-    units.length - 1
-  );
-  const v = n / Math.pow(1024, i);
-  return `${v.toFixed(v >= 100 || i === 0 ? 0 : v >= 10 ? 1 : 2)} ${units[i]}`;
-}
+import { formatBytes } from "../../../helpers/FileSizeFormat";
 
 export default function ManageFilesSection() {
   const { role } = useAuth();

@@ -1,11 +1,10 @@
-
 export type FileMetadataDto = {
   id: string;
   name: string;
   type: string;
   size: number;
   description?: string | null;
-  uploadTime: string; 
+  uploadTime: string;
   isPublic: boolean;
 };
 
@@ -42,3 +41,14 @@ export function mapDtoToFileMeta(d: FileMetadataDto): FileMeta {
     isPublic: d.isPublic,
   };
 }
+
+export type ClientMeta = {
+  id: string;
+  name: string;
+  description?: string;
+  type: string;
+  extension: string;
+  size: number;
+  uploadedAt: string;
+  isPublic?: boolean;
+};
