@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../../api/client";
 import { Endpoints } from "../../../constants/Endpoints";
 import { AppRoles } from "../../../constants/AppRoles";
+import { formatBytes } from "../../../helpers/FileSizeFormat";
 
 type OverviewSectionProps = {
   username: string | null;
@@ -20,17 +21,6 @@ type PagedResultDto<T> = {
   total: number;
 };
 
-function formatBytes(n: number | null | undefined) {
-  if (!n || n <= 0) return "—";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.min(
-    Math.floor(Math.log(n) / Math.log(1024)),
-    units.length - 1
-  );
-  const v = n / Math.pow(1024, i);
-  return `${v.toFixed(v >= 100 || i === 0 ? 0 : v >= 10 ? 1 : 2)} ${units[i]}`;
-}
-
 export default function OverviewSection({
   username = "",
 }: OverviewSectionProps) {
@@ -44,7 +34,7 @@ export default function OverviewSection({
 
   const [filesLoading, setFilesLoading] = useState(false);
   const [fileCount, setFileCount] = useState<number | null>(null);
-  const [fileBytesTotal, setFileBytesTotal] = useState<number | null>(null);
+  const [fileBytesTotal, setFileBytesTotal] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     (async () => {
@@ -110,7 +100,7 @@ export default function OverviewSection({
         setFileBytesTotal(totalBytes);
       } catch {
         setFileCount(null);
-        setFileBytesTotal(null);
+        setFileBytesTotal(undefined);
       } finally {
         setFilesLoading(false);
       }

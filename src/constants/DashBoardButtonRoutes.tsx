@@ -3,7 +3,8 @@ export const DashBoardButtonRoutes = {
   FeedBack: "feedback",
   Files: "files",
   Register: "register",
-  Users: "users"
+  Users: "users",
+  GameClient: "gameclient"
 
 } as const;
 
